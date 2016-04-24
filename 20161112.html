@@ -116,6 +116,7 @@
                 <hr>
                 <p>건대입구역 도보 5~10분!</p>
                 <p>네이버 지도 추가 예정</p>
+                <div id="map"></div>
             </div>
         </div>
     </div>
@@ -136,11 +137,16 @@
 <script type="text/javascript" charset="UTF-8"  src="/static/js/lib/jquery-1.11.3.js"></script>
 <!-- Bootstrap Core JavaScript -->
 <script type="text/javascript" charset="UTF-8"  src="/static/js/lib/bootstrap.js"></script>
+<!-- naver map -->
+<script type="text/javascript" charset="UTF-8"  src="http://openapi.map.naver.com/openapi/v2/maps.js?clientId=6GXS1kUr97nYQbSj1VNZ"></script>
+<script type="text/javascript" charset="UTF-8"  src="/static/js/common/naver.map.js"></script>
 <!-- 화면 전환 -->
 <script type="text/javascript" charset="UTF-8">
     $('.carousel').carousel({
         interval: 5000 // 5초 간격으로 이미지 전환
     })
+
+    new wcard.naver.map.Structure("map", 37.5010226, 127.0396037, 800, 400);
 </script>
 </body>
 </html>
