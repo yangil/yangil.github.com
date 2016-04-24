@@ -14,8 +14,7 @@
                 mapMode : 0,
                 activateTrafficMap : false,
                 activateBicycleMap : false,
-                minMaxLevel : [ 1, 14 ],
-                size : new nhn.api.map.Size(width, height)
+                minMaxLevel : [ 1, 14 ]
             });
 
             wcard.naver.map._instance[elId] = oMap;
