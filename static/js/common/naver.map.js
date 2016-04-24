@@ -1,7 +1,7 @@
 (function(context) {
     context.naver = context.naver || {};
     context.naver.map = {
-        _maps: {},
+        _instance: {},
 
         Instance: function(elId, locationX, locationY, width, height) {
             var targetPoint = new nhn.api.map.LatLng(locationX, locationY);
@@ -18,7 +18,7 @@
                 size : new nhn.api.map.Size(width, height)
             });
 
-            wcard.naver.map._maps[elId] = oMap;
+            wcard.naver.map._instance[elId] = oMap;
 
             return oMap;
         }
