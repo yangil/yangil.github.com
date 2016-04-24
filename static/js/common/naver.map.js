@@ -3,7 +3,7 @@
     context.naver.map = {
         _instance: {},
 
-        Structure: function(elId, locationX, locationY, height, width) {
+        Structure: function(elId, locationX, locationY, width, height) {
             var targetPoint = new nhn.api.map.LatLng(locationX, locationY);
             var oMap = new nhn.api.map.Map(document.getElementById(elId), {
                 point : targetPoint,
@@ -15,10 +15,10 @@
                 activateTrafficMap : false,
                 activateBicycleMap : false,
                 minMaxLevel : [ 1, 14 ],
-                size : new nhn.api.map.Size(height, width)
+                size : new nhn.api.map.Size(width, height)
             });
 
-            this._instance[elId] = oMap;
+            wcard.naver.map._instance[elId] = oMap;
 
             return oMap;
         }
