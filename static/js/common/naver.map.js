@@ -5,6 +5,13 @@
         _marker: {},
         _label: {},
 
+        /**
+         * 맵 생성
+         * @param elementId
+         * @param pointX
+         * @param pointY
+         * @returns {nhn.api.map.Map}
+         */
         create: function(elementId, pointX, pointY) {
             var targetPoint = new nhn.api.map.LatLng(pointY, pointX);
             var targetEl = $('#' + elementId);
@@ -28,6 +35,14 @@
             return oMap;
         },
 
+        /**
+         * marker 생성
+         * @param elementId
+         * @param displayName
+         * @param pointX
+         * @param pointY
+         * @returns {nhn.api.map.Marker}
+         */
         marker: function(elementId, displayName, pointX, pointY) {
 
             var oMap = this._instance[elementId];
@@ -53,6 +68,8 @@
             oLabel.setVisible(true, oMarker);
 
             this._label[elementId] = oLabel;
+
+            return oMarker;
         }
     };
 })(window.wcard = window.wcard || {})
