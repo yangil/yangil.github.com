@@ -28,7 +28,7 @@
             return oMap;
         },
 
-        marker: function(elementId, locationX, locationY) {
+        marker: function(elementId, displayName, locationX, locationY) {
 
             var oMap = this._instance[elementId];
 
@@ -46,7 +46,7 @@
             mapInfoWindow.setVisible(true); // - infowindow 표시 여부 지정.
             oMap.addOverlay(mapInfoWindow);     // - 지도에 추가.
 
-            var oMarker = new nhn.api.map.Marker(oIcon, { title : name });
+            var oMarker = new nhn.api.map.Marker(oIcon, { title : displayName });
             oMarker.setPoint(oPoint);
             oMap.addOverlay(oMarker);
 
