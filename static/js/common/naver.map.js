@@ -3,7 +3,7 @@
     context.naver.map = {
         _instance: {},
 
-        create: function(elementId, displayName, locationX, locationY) {
+        create: function(elementId, locationX, locationY) {
             var targetPoint = new nhn.api.map.LatLng(locationX, locationY);
             var targetEl = $('#' + elementId);
             var width = targetEl.outerWidth() == 0 ? 500 : targetEl.outerWidth();
