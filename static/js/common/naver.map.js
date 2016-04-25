@@ -42,10 +42,6 @@
             var oOffset = new nhn.api.map.Size(14, 37);
             var oIcon = new nhn.api.map.Icon('/static/img/map/pin_spot2.png', oSize, oOffset);
 
-            var mapInfoWindow = new nhn.api.map.InfoWindow(); // - info window 생성
-            mapInfoWindow.setVisible(true); // - infowindow 표시 여부 지정.
-            oMap.addOverlay(mapInfoWindow);     // - 지도에 추가.
-
             var oMarker = new nhn.api.map.Marker(oIcon, { title : displayName });
             oMarker.setPoint(oPoint);
             oMap.addOverlay(oMarker);
