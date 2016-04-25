@@ -45,8 +45,7 @@
 
             mapInfoWindow.setContent('<DIV style="border-top:1px solid; border-bottom:2px groove black; border-left:1px solid; border-right:2px groove black;margin-bottom:1px;color:black;background-color:white; width:auto; height:auto;">'+
                 '<span style="color: #000000 !important;display: inline-block;font-size: 12px !important;font-weight: bold !important;letter-spacing: -1px !important;white-space: nowrap !important; padding: 2px 5px 2px 2px !important">' +
-                'Hello World <br /> ' + oTarget.getPoint()
-                +'<span></div>');
+                'Hello World <br /><span></div>');
             mapInfoWindow.setPoint(oPoint);
             mapInfoWindow.setVisible(true);
             mapInfoWindow.autoPosition();
