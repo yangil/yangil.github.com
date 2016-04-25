@@ -21,6 +21,19 @@
                 size : new nhn.api.map.Size(width, height)
             });
 
+            var oPoint = new nhn.api.map.LatLng(locationX, locationY);
+
+            var oSize = new nhn.api.map.Size(28, 37);
+            var oOffset = new nhn.api.map.Size(14, 37);
+            var oIcon = new nhn.api.map.Icon('/static/img/map/pin_spot2.png', oSize, oOffset);
+
+            var oLabel = new nhn.api.map.MarkerLabel(); // - 마커 라벨 선언.
+            oMap.addOverlay(oLabel); // - 마커 라벨 지도에 추가. 기본은 라벨이 보이지 않는 상태로 추가됨.
+
+            var oMarker = new nhn.api.map.Marker(oIcon, { "title" : "test" });
+            oMarker.setPoint(oPoint);
+            oMap.addOverlay(oMarker);
+
             this._instance[elementId] = oMap;
 
             return oMap;
