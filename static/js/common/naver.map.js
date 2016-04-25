@@ -55,7 +55,7 @@
             oMap.addOverlay(oMarker);
 
             var oLabel = new nhn.api.map.MarkerLabel(); // - 마커 라벨 선언.
-            mapInfoWindow.setVisible(true, oMarker); // - oLabel 표시 여부 지정.
+            oLabel.setVisible(true, oMarker); // - oLabel 표시 여부 지정.
             oMap.addOverlay(oLabel); // - 마커 라벨 지도에 추가.
         }
     };
