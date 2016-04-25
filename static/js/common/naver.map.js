@@ -2,8 +2,6 @@
     context.naver = context.naver || {};
     context.naver.map = {
         _instance: {},
-        _marker:{},
-        _label: {},
 
         create: function(elementId, displayName, locationX, locationY) {
             var targetPoint = new nhn.api.map.LatLng(locationX, locationY);
@@ -45,13 +43,9 @@
             var oLabel = new nhn.api.map.MarkerLabel(); // - 마커 라벨 선언.
             oMap.addOverlay(oLabel); // - 마커 라벨 지도에 추가. 기본은 라벨이 보이지 않는 상태로 추가됨.
 
-            this._label[elementId] = oLabel;
-
-            var oMarker = new nhn.api.map.Marker(oIcon, { title : displayName });
+            var oMarker = new nhn.api.map.Marker(oIcon, { "title" : displayName });
             oMarker.setPoint(oPoint);
             oMap.addOverlay(oMarker);
-
-            this._marker[elementId] = oMarker;
         }
     };
 })(window.wcard = window.wcard || {})
