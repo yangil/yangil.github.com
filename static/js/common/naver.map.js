@@ -53,8 +53,8 @@
             this._marker[elementId] = oMarker;
 
             var oLabel = new nhn.api.map.MarkerLabel(); // - 마커 라벨 선언.
-            oMap.addOverlay(oLabel); // - 마커 라벨 지도에 추가. 기본은 라벨이 보이지 않는 상태로 추가됨.
             oLabel.setVisible(true, oMarker);
+            oMap.addOverlay(oLabel); // - 마커 라벨 지도에 추가. 기본은 라벨이 보이지 않는 상태로 추가됨.
 
             this._label[elementId] = oLabel;
         }
