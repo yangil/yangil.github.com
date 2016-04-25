@@ -3,8 +3,8 @@
     context.naver.map = {
         _instance: {},
 
-        create: function(elementId, locationX, locationY) {
-            var targetPoint = new nhn.api.map.LatLng(locationX, locationY);
+        create: function(elementId, pointX, pointY) {
+            var targetPoint = new nhn.api.map.LatLng(pointY, pointX);
             var targetEl = $('#' + elementId);
             var width = targetEl.outerWidth() == 0 ? 500 : targetEl.outerWidth();
             var height = targetEl.outerHeight() == 0 ? width : targetEl.outerHeight();
@@ -26,7 +26,7 @@
             return oMap;
         },
 
-        marker: function(elementId, displayName, locationX, locationY) {
+        marker: function(elementId, displayName, pointX, pointY) {
 
             var oMap = this._instance[elementId];
 
@@ -34,7 +34,7 @@
                 return;
             }
 
-            var oPoint = new nhn.api.map.LatLng(locationX, locationY);
+            var oPoint = new nhn.api.map.LatLng(pointY, pointX);
 
             var oSize = new nhn.api.map.Size(28, 37);
             var oOffset = new nhn.api.map.Size(14, 37);
