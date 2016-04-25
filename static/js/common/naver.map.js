@@ -52,8 +52,6 @@
             oMap.addOverlay(oMarker);
 
             this._marker[elementId] = oMarker;
-            
-            oLabel.setVisible(true, oMarker);
         }
     };
 })(window.wcard = window.wcard || {})
