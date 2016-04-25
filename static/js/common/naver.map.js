@@ -28,7 +28,7 @@
             return oMap;
         },
 
-        marker: function(elementId, locationX, locationY) {
+        marker: function(elementId, displayName, locationX, locationY) {
 
             var oMap = this._instance[elementId];
 
@@ -42,16 +42,17 @@
             var oOffset = new nhn.api.map.Size(14, 37);
             var oIcon = new nhn.api.map.Icon('/static/img/map/pin_spot2.png', oSize, oOffset);
 
-            var mapInfoWindow = new nhn.api.map.InfoWindow(); // - info window 생성
-            mapInfoWindow.setVisible(true); // - infowindow 표시 여부 지정.
-            oMap.addOverlay(mapInfoWindow);     // - 지도에 추가.
+            var oMarker = new nhn.api.map.Marker(oIcon, { title : displayName });
+            oMarker.setPoint(oPoint);
+            oMap.addOverlay(oMarker);
+
+            this._marker[elementId] = oMarker;
 
             var oLabel = new nhn.api.map.MarkerLabel(); // - 마커 라벨 선언.
             oMap.addOverlay(oLabel); // - 마커 라벨 지도에 추가. 기본은 라벨이 보이지 않는 상태로 추가됨.
+            oLabel.setVisible(true, oMarker);
 
-            var oMarker = new nhn.api.map.Marker(oIcon, { title : 'Marker : ' + oPoint.toString() });
-            oMarker.setPoint(oPoint);
-            oMap.addOverlay(oMarker);
+            this._label[elementId] = oLabel;
         }
     };
 })(window.wcard = window.wcard || {})
