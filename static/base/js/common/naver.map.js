@@ -55,7 +55,7 @@
 
             var oSize = new nhn.api.map.Size(28, 37);
             var oOffset = new nhn.api.map.Size(14, 37);
-            var oIcon = new nhn.api.map.Icon('/static/img/map/pin_spot2.png', oSize, oOffset);
+            var oIcon = new nhn.api.map.Icon('/static/base/img/map/pin_spot2.png', oSize, oOffset);
 
             var oMarker = new nhn.api.map.Marker(oIcon, { "title" : displayName });
             oMarker.setPoint(oPoint);
