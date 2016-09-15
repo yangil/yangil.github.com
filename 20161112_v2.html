@@ -246,7 +246,7 @@
                 <div class="service-box">
                     <h3>청첩장 공유</h3>
                     <i class="fa fa-envelope-o fa-3x sr-contact _sMessage" style="margin: 5%;"></i>
-                    <i class="fa fa-comment fa-3x sr-contact _kakao" style="margin: 5%;"></i>
+                    <i id="kakao-link-btn" class="fa fa-comment fa-3x sr-contact" style="margin: 5%;"></i>
                 </div>
             </div>
         </div>
@@ -270,6 +270,9 @@
 <!-- naver map -->
 <script type="text/javascript" charset="UTF-8"  src="https://openapi.map.naver.com/openapi/v2/maps.js?clientId=6GXS1kUr97nYQbSj1VNZ"></script>
 <script type="text/javascript" charset="UTF-8"  src="/static/base/js/common/naver.map.js"></script>
+
+<!-- kakao -->
+<script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
 
 <script type="text/javascript" charset="UTF-8">
 $(document).ready(function() {
@@ -295,9 +298,27 @@ $(document).ready(function() {
     });
 
     // kakao
-    $('._kakao').click(function() {
-        alert("kakao 초대장 보내기 준비중.");
-    });
+    Kakao.init('67e15585c31cfd25d0eda30c9f834ace');
+
+    try{
+        Kakao.Link.createTalkLinkButton({
+            container: '#kakao-link-btn',
+            label: '[이양일 ♡ 황문희] \n결혼식에 초대합니다.\n일시:2016-11-12 12:00\n장소:건국대학교 동문회관',
+            image: {
+                src: 'http://yangil.github.io/img/20161112_v2/thumb/1.jpg',
+                width: 600,
+                height: 900
+            },
+            webButton:{
+                text:'모바일청첩장으로 이동',
+                url: 'http://yangil.github.io/20161112_v2.html'
+            },
+            fail: function(){
+
+            }
+        });
+    }catch(e){
+    }
 });
 
 </script>
