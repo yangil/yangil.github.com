@@ -24,7 +24,7 @@
                 We Are Getting Married
             </h1>
             <hr>
-            <p>이양일 <span class="fa fa-1x fa-heart" style="color: #F05F40;"></span> 황문희</p>
+            <h3>이양일 <span class="fa fa-1x fa-heart" style="color: #F05F40;"></span> 황문희</h3>
         </div>
     </div>
 </header>
@@ -55,7 +55,7 @@
                 <div class="service-box">
                     <i class="fa fa-4x fa-calendar-check-o text-primary sr-icons"></i>
                     <h3>날짜 및 시간</h3>
-                    <p class="text-muted">2016년 11월 12일 12시</p>
+                    <h4 class="text-muted">2016년 11월 12일(토요일) 12시</h4>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 text-center">
@@ -63,28 +63,11 @@
                     <i class="fa fa-4x fa-building-o text-primary sr-icons"></i>
                     <h3>예식장</h3>
                     <p class="text-muted">
+                        건국대학교 동문회관 2층 단독홀
+                    </p>
+                    <p class="text-muted">
                         서울 광진구 아차산로36길 5 (자양동 227-336)<br>
-                        건국대학교동문회관 (TEL. 02-447-7005)
-                    </p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 text-center">
-                <div class="service-box">
-                    <i class="fa fa-4x fa-train text-primary sr-icons"></i>
-                    <h3>지하철</h3>
-                    <p class="text-muted">
-                        (2호선 건대입구역) 5번 출구 5분거리 내<br>
-                        (7호선 건대입구역) 3, 4번 출구 5분거리 내<br>
-                    </p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 text-center">
-                <div class="service-box">
-                    <i class="fa fa-4x fa-bus text-primary sr-icons"></i>
-                    <h3>버스</h3>
-                    <p class="text-muted">
-                        (간선) 240, 721<br>
-                        (지선) 2222, 2223, 2224, 3217, 4212
+                        tel. 02-447-7005
                     </p>
                 </div>
             </div>
@@ -94,12 +77,6 @@
 
 <section id="map" style="padding: 0px 0 60px 0;">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 text-center">
-                <h2 class="section-heading">지도</h2>
-                <hr>
-            </div>
-        </div>
         <div class="row">
             <div style="border:1px solid #000;margin-right: auto;margin-left: auto; width: 80%; height: 80%;">
                 <div id="mapContent"></div>
@@ -154,7 +131,7 @@
     </div>
     <div class="container">
         <div class="row text-center">
-            <div class="col-lg-3 col-md-6 text-center">
+            <!--<div class="col-lg-3 col-md-6 text-center">
                 <div class="service-box" style="margin: 30px auto 0;">
                     <h3>신랑</h3>
                     <i class="fa fa-phone fa-3x sr-contact _phone" _phone="01038773181" style="margin: 5%;"></i>
@@ -167,9 +144,9 @@
                     <i class="fa fa-phone fa-3x sr-contact _phone" _phone="01057450073" style="margin: 5%;"></i>
                     <i class="fa fa-envelope-o fa-3x sr-contact _message" _phone="01057450073" style="margin: 5%;"></i>
                 </div>
-            </div>
+            </div>-->
             <div class="col-lg-3 col-md-6 text-center">
-                <div class="service-box" style="margin: 30px auto 0;">
+                <div class="service-box" style="margin: 10px auto 0;">
                     <h3>청첩장 공유</h3>
                     <i class="fa fa-envelope-o fa-3x sr-contact _sMessage" style="margin: 5%;"></i>
                     <i id="kakao-link-btn" class="fa fa-comment fa-3x sr-contact" style="margin: 5%;"></i>
@@ -230,7 +207,7 @@ $(document).ready(function() {
 
     // sMessage
     $('._sMessage').click(function() {
-        location.href = "sms:?body=[이양일 ♡ 황문희] 결혼식에 초대합니다.%0D%0A일시:2016-11-12 12:00%0D%0A / 장소: 건국대학교 동문회관%0D%0Ahttp://yangil.github.io/20161112_v2.html";
+        location.href = "sms:?body=[이양일 ♡ 황문희] 결혼식에 초대합니다.%0D%0A일시:2016-11-12 12:00%0D%0A / 장소: 건국대학교 동문회관%0D%0Ahttp://yangil.github.io/20161112_v3.html";
     });
 
     // kakao
@@ -241,7 +218,7 @@ $(document).ready(function() {
             container: '#kakao-link-btn',
             label: '[이양일 ♡ 황문희] \n결혼식에 초대합니다.\n일시:2016-11-12 12:00\n장소:건국대학교 동문회관',
             image: {
-                src: 'http://yangil.github.io/static/img/20161112_v3/kakao.jpg',
+                src: 'http://yangil.github.io/static/img/20161112_v3/kakao.jpeg',
                 width: 600,
                 height: 900
             },
