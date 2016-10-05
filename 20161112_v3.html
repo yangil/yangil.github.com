@@ -27,7 +27,7 @@
         }
     </style>
 </head>
-<body id="page-top">
+<body id="page-top" ondblclick="checkResize();">
 <header style="background-image:url('/static/img/20161112_v3/welcome.jpg');">
     <div class="header-content">
         <div class="header-content-inner">
@@ -249,6 +249,10 @@ $(document).ready(function() {
         interval: 3500 // 5초 간격으로 이미지 전환
     });
 });
+
+    var checkResize = function() {
+        alert("dbclick");
+    }
 
 </script>
 </body>
