@@ -68,8 +68,7 @@
                     <i class="fa fa-4x fa-calendar-check-o text-pink sr-icons"></i>
                     <h3>날짜 및 시간</h3>
                     <p class="text-muted" style="font-size: 20px;">
-                        2016년 11월 12일 토요일<br>
-                        낮 12시
+                        2016년 11월 12일(토) 12:00<br>
                     </p>
                 </div>
             </div>
@@ -221,7 +220,7 @@ $(document).ready(function() {
 
     // sMessage
     $('._sMessage').click(function() {
-        location.href = "sms:?body=[이양일 ♡ 황문희] 결혼식에 초대합니다.%0D%0A일시:2016년 11월 12일 토요일 낮 12시%0D%0A / 장소: 건국대학교 동문회관%0D%0Ahttp://yangil.github.io/20161112_v3.html";
+        location.href = "sms:?body=[이양일 ♡ 황문희] 결혼식에 초대합니다.%0D%0A일시:2016년 11월 12일(토) 12:00%0D%0A / 장소: 건국대학교 동문회관%0D%0Ahttp://yangil.github.io/20161112_v3.html";
     });
 
     // kakao
@@ -230,7 +229,7 @@ $(document).ready(function() {
     try{
         Kakao.Link.createTalkLinkButton({
             container: '#kakao-link-btn',
-            label: '[이양일 ♡ 황문희] \n결혼식에 초대합니다.\n일시:2016년 11월 12일 토요일 낮 12시\n장소:건국대학교 동문회관',
+            label: '[이양일 ♡ 황문희] \n결혼식에 초대합니다.\n일시:2016년 11월 12일(토) 12:00\n장소:건국대학교 동문회관',
             image: {
                 src: 'http://yangil.github.io/static/img/20161112_v3/kakao.jpeg',
                 width: 600,
