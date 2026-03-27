@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1774598215430,
+  "projectRoot": "/Users/user/IdeaProjects/yangil.github.com",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "static"
+    ],
+    "gitBranches": {
+      "defaultBranch": "master",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "daon": {
+      "path": "daon",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1774598215390,
+      "keyFiles": []
+    },
+    "static": {
+      "path": "static",
+      "purpose": "Static files",
+      "fileCount": 0,
+      "lastAccessed": 1774598215391,
+      "keyFiles": []
+    },
+    "daon/static": {
+      "path": "daon/static",
+      "purpose": "Static files",
+      "fileCount": 1,
+      "lastAccessed": 1774598215391,
+      "keyFiles": [
+        "text1.png.jpeg"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "daon/static/text1.jpeg",
+      "accessCount": 1,
+      "lastAccessed": 1774598286111,
+      "type": "file"
+    },
+    {
+      "path": "daon/reading.html",
+      "accessCount": 1,
+      "lastAccessed": 1774598437843,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
