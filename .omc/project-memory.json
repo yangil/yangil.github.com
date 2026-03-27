@@ -60,15 +60,15 @@
   },
   "hotPaths": [
     {
-      "path": "daon/static/text1.jpeg",
-      "accessCount": 1,
-      "lastAccessed": 1774598286111,
+      "path": "daon/reading.html",
+      "accessCount": 11,
+      "lastAccessed": 1774598856764,
       "type": "file"
     },
     {
-      "path": "daon/reading.html",
+      "path": "daon/static/text1.jpeg",
       "accessCount": 1,
-      "lastAccessed": 1774598437843,
+      "lastAccessed": 1774598286111,
       "type": "file"
     }
   ],

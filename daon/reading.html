@@ -108,6 +108,22 @@
     .btn-read:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,87,34,0.5); }
     .btn-read:active { transform: translateY(0); }
 
+    /* 이전 버튼 */
+    .btn-prev {
+      padding: 16px 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #5d4037;
+      background: #f5f5f5;
+      border: 2px solid #e0e0e0;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-prev:hover { background: #eeeeee; }
+    .btn-prev:disabled { opacity: 0.3; cursor: default; }
+
     /* 별 애니메이션 */
     .stars {
       text-align: center;
@@ -290,7 +306,10 @@
   <div class="card" id="text-card">
     <div class="card-title" id="card-title"></div>
     <div class="card-body"  id="card-body"></div>
-    <button class="btn-read" id="btn-read" onclick="markRead()">✅ 다 읽었어요!</button>
+    <div style="display:flex;gap:10px;margin-top:24px">
+      <button class="btn-prev" id="btn-prev" onclick="goBack()">◀ 이전</button>
+      <button class="btn-read" id="btn-read" onclick="markRead()" style="margin-top:0;flex:1">✅ 다 읽었어요!</button>
+    </div>
   </div>
 
   <div id="done-msg">
@@ -420,7 +439,16 @@ function showCurrent() {
     `${current + 1} / ${texts.length} 읽는 중`;
   const pct = (current / texts.length) * 100;
   document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('btn-read').style.display = 'block';
+  document.getElementById('btn-prev').disabled = (current === 0);
+}
+
+function goBack() {
+  if (current > 0) {
+    current--;
+    readDone[current] = false;
+    document.getElementById('star' + current).classList.remove('done');
+    showCurrent();
+  }
 }
 
 function markRead() {
@@ -461,10 +489,22 @@ function startGame() {
   else if (chosenGame === 'breakout') initBreakout();
 }
 
+function resetReading() {
+  current = 0;
+  for (let i = 0; i < texts.length; i++) {
+    readDone[i] = false;
+    document.getElementById('star' + i).classList.remove('done');
+  }
+  document.getElementById('text-card').style.display = 'flex';
+  document.getElementById('done-msg').style.display = 'none';
+  showCurrent();
+}
+
 function backToReading() {
   stopAllGames();
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('reading-screen').style.display = 'block';
+  resetReading();
 }
 
 function stopAllGames() {
