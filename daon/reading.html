@@ -538,6 +538,7 @@ function stopAllGames() {
   if (breakoutAnimId) cancelAnimationFrame(breakoutAnimId);
   clearTimeout(hanjaNextTimeout);
   clearTimeout(mathNextTimeout);
+  stopBGM();
 }
 
 // ─── 공통 UI 헬퍼 ───
@@ -586,6 +587,7 @@ const MATH_TOTAL = 10;
 function initMath() {
   setGameTitle('🔢 더하기 빼기 퀴즈');
   showMathUI();
+  startBGM('math');
   mathIdx = 0;
   mathScore = 0;
   setScore('');
@@ -683,6 +685,7 @@ const MOLE_EMOJIS = ['🐭','🐹','🦔','🐿️'];
 function initMole() {
   setGameTitle('🔨 두더지 잡기');
   showMoleGrid();
+  startBGM('mole');
   moleScore = 0;
   moleTimeLeft = 30;
   moleActive = -1;
@@ -812,6 +815,7 @@ function initBreakout() {
 
   if (breakoutAnimId) cancelAnimationFrame(breakoutAnimId);
   breakoutLoop();
+  startBGM('breakout');
 }
 
 function clampPaddle() {
@@ -1056,6 +1060,7 @@ const HANJA_TOTAL = 10;
 function initHanja() {
   setGameTitle('🀄 한자 퀴즈');
   showHanjaUI();
+  startBGM('hanja');
 
   // HANJA_TOTAL개 랜덤 선택
   const shuffled = [...hanjaList].sort(() => Math.random() - 0.5);
@@ -1127,6 +1132,123 @@ function answerHanja(correct, clickedBtn, box) {
       fb.textContent = `완료! 최종 점수: ${hanjaScore} / ${HANJA_TOTAL * 10}점`;
     }, 1500);
   }
+}
+
+// ═══════════════════════════════════════════
+//  🎵 BGM 엔진 (Web Audio API)
+// ═══════════════════════════════════════════
+let bgmCtx = null;
+let bgmGain = null;
+let bgmOscs = [];
+let bgmTimerId = null;
+
+const NF = { // note frequencies
+  R:0,
+  C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, B4:493.88,
+  C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99, A5:880.00, B5:987.77,
+  Cs4:277.18, Ds4:311.13, Fs4:369.99, Gs4:415.30, As4:466.16,
+  Cs5:554.37, Ds5:622.25, Fs5:739.99, Gs5:830.61, As5:932.33,
+};
+
+const BGM = {
+  // 수학: 밝고 경쾌한 동요풍
+  math: {
+    bpm: 160, type: 'square', vol: 0.07,
+    notes: [
+      'C5','E5','G5','E5','C5','E5','G5','C6',
+      'B4','D5','G5','D5','B4','D5','G5','B5',
+      'A4','C5','E5','C5','A4','C5','E5','A5',
+      'G4','B4','D5','B4','G4','B4','D5','G5',
+    ],
+    C6:1046.50, B5:987.77
+  },
+  // 두더지: 빠르고 신나는 펑키풍
+  mole: {
+    bpm: 220, type: 'sawtooth', vol: 0.05,
+    notes: [
+      'C5','R','C5','R','G5','R','G5','R',
+      'A5','R','A5','R','G5','R','R','R',
+      'F5','R','F5','R','E5','R','E5','R',
+      'D5','R','D5','R','C5','R','R','R',
+    ]
+  },
+  // 벽돌깨기: 테트리스 Type-A 풍 레트로
+  breakout: {
+    bpm: 150, type: 'square', vol: 0.07,
+    notes: [
+      'A4','E5','F5','G5','F5','E5','D4','D4',
+      'F4','A4','B4','C5','B4','A4','G4','G4',
+      'A4','F4','G4','E4','C4','D4','E4','F4',
+      'G4','F4','E4','D4','C4','R','C4','R',
+    ]
+  },
+  // 한자: 느긋한 동양 5음계
+  hanja: {
+    bpm: 72, type: 'sine', vol: 0.08,
+    notes: [
+      'G4','R','A4','R','C5','R','D5','R',
+      'E5','R','D5','R','C5','R','A4','R',
+      'G4','R','C5','R','E5','R','G5','R',
+      'E5','R','D5','R','C5','R','R','R',
+    ]
+  }
+};
+// 추가 옥타브 주파수
+const EXTRA_NF = { C6:1046.50, B5:987.77, G5:783.99 };
+
+function ensureBgmCtx() {
+  if (!bgmCtx) {
+    bgmCtx = new (window.AudioContext || window.webkitAudioContext)();
+    bgmGain = bgmCtx.createGain();
+    bgmGain.connect(bgmCtx.destination);
+  }
+  if (bgmCtx.state === 'suspended') bgmCtx.resume();
+  return bgmCtx;
+}
+
+function stopBGM() {
+  clearTimeout(bgmTimerId);
+  bgmOscs.forEach(o => { try { o.stop(0); } catch(e){} });
+  bgmOscs = [];
+}
+
+function startBGM(game) {
+  try {
+  stopBGM();
+  const ctx = ensureBgmCtx();
+  const track = BGM[game];
+  if (!track) return;
+
+  bgmGain.gain.value = track.vol;
+  const beatMs = (60 / track.bpm) * 1000;
+  let idx = 0;
+
+  function tick() {
+    const noteKey = track.notes[idx];
+    const freq = NF[noteKey] ?? EXTRA_NF[noteKey] ?? 0;
+    idx = (idx + 1) % track.notes.length;
+
+    if (freq > 0) {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = track.type;
+      osc.frequency.value = freq;
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + (beatMs / 1000) * 0.85);
+      osc.connect(gain);
+      gain.connect(bgmGain);
+      osc.start(now);
+      osc.stop(now + beatMs / 1000);
+      bgmOscs.push(osc);
+      // 오래된 노드 정리
+      if (bgmOscs.length > 20) bgmOscs.splice(0, 10);
+    }
+
+    bgmTimerId = setTimeout(tick, beatMs);
+  }
+  tick();
+  } catch(e) { console.warn('BGM error:', e); }
 }
 </script>
 </body>
