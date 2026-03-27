@@ -785,7 +785,7 @@ function initBreakout() {
   brkState = {
     W, H,
     paddle: { x: W/2 - paddleW/2, y: H - 30, w: paddleW, h: paddleH },
-    ball:   { x: W/2, y: H - 60, vx: 3, vy: -4, r: ballR },
+    ball:   { x: W/2, y: H - 60, vx: 1.5, vy: -2, r: ballR },
     bricks,
     score: 0,
     lives: 3,
@@ -882,7 +882,7 @@ function breakoutDraw() {
       ball.x > paddle.x && ball.x < paddle.x + paddle.w) {
     ball.y = paddle.y - ball.r;
     const hit = (ball.x - (paddle.x + paddle.w/2)) / (paddle.w/2);
-    ball.vx = hit * 5;
+    ball.vx = hit * 2.5;
     ball.vy = -Math.abs(ball.vy);
   }
 
@@ -908,7 +908,7 @@ function breakoutDraw() {
       return;
     }
     ball.x = W/2; ball.y = H-80;
-    ball.vx = 3; ball.vy = -4;
+    ball.vx = 1.5; ball.vy = -2;
   }
 
   // 벽돌 충돌
