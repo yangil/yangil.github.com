@@ -275,8 +275,8 @@
     .hanja-btn {
       width: 100%;
       padding: 16px;
-      font-size: 1.2rem;
-      font-weight: 700;
+      font-size: 1.3rem;
+      font-weight: 900;
       color: #1a1a2e;
       background: #fff;
       border: 3px solid transparent;
@@ -1092,7 +1092,7 @@ function showHanjaQuestion() {
   choices.forEach(c => {
     const btn = document.createElement('button');
     btn.className = 'hanja-btn';
-    btn.textContent = `${c.sound} — ${c.mean}`;
+    btn.textContent = c.mean;
     btn.onclick = () => answerHanja(c.char === q.char, btn, box);
     box.appendChild(btn);
   });
