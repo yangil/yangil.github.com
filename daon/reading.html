@@ -75,9 +75,10 @@
     }
     .card-body {
       flex: 1;
-      font-size: 1.25rem;
-      line-height: 2.0;
-      color: #3e2723;
+      font-size: 1.65rem;
+      font-weight: 800;
+      line-height: 2.3;
+      color: #1a1a1a;
       white-space: pre-line;
       text-align: center;
     }
@@ -210,28 +211,6 @@
     }
     .btn-back:hover { background: #f5f5f5; }
 
-    /* 모바일 방향키 */
-    #dpad {
-      display: none;
-      grid-template-columns: repeat(3, 52px);
-      grid-template-rows: repeat(3, 52px);
-      gap: 4px;
-      justify-content: center;
-    }
-    @media (pointer: coarse) { #dpad { display: grid; } }
-    .dpad-btn {
-      background: rgba(255,255,255,0.15);
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 1.4rem;
-      cursor: pointer;
-      width: 52px; height: 52px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .dpad-btn:active { background: rgba(255,255,255,0.35); }
-    .dpad-center { grid-column: 2; grid-row: 2; }
-
     /* 두더지 잡기 전용 */
     #mole-grid {
       display: none;
@@ -276,6 +255,47 @@
       transition: width 0.1s linear;
     }
 
+    /* 한자 퀴즈 */
+    #hanja-char {
+      font-size: 7rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      width: 160px; height: 160px;
+      display: flex; align-items: center; justify-content: center;
+      border: 3px solid rgba(255,255,255,0.2);
+    }
+    #hanja-hint {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 1px;
+    }
+    .hanja-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      background: #fff;
+      border: 3px solid transparent;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+    .hanja-btn:hover:not(:disabled) { transform: scale(1.02); background: #f0f0ff; }
+    .hanja-btn.correct { background: #a5d6a7; border-color: #2e7d32; color: #1b5e20; }
+    .hanja-btn.wrong   { background: #ef9a9a; border-color: #c62828; color: #7f0000; }
+    .hanja-btn:disabled { cursor: default; }
+    #hanja-feedback {
+      font-size: 1.4rem;
+      font-weight: 800;
+      min-height: 2rem;
+      text-align: center;
+    }
+
     /* 벽돌깨기 안내 */
     #breakout-hint {
       display: none;
@@ -315,7 +335,7 @@
   <div id="done-msg">
     <div style="font-size:3rem;margin-bottom:12px">🎉🥳🎊</div>
     <h2>모두 다 읽었어요!</h2>
-    <p>정말 잘했어요! 보상으로<br>아케이드 게임 하나를 골라줄게요 🎮</p>
+    <p>정말 잘했어요! 보상으로<br>재미있는 게임 하나를 골라줄게요 🎮</p>
     <button class="btn-game" onclick="startGame()">🎮 게임 시작!</button>
   </div>
 </div>
@@ -348,17 +368,21 @@
 
   <div id="breakout-hint">화면을 터치해서 패들을 움직이세요</div>
 
-  <!-- 모바일 방향키 (뱀 게임) -->
-  <div id="dpad">
-    <div></div>
-    <button class="dpad-btn" onclick="snakeDir(0,-1)">▲</button>
-    <div></div>
-    <button class="dpad-btn" onclick="snakeDir(-1,0)">◀</button>
-    <div class="dpad-center"></div>
-    <button class="dpad-btn" onclick="snakeDir(1,0)">▶</button>
-    <div></div>
-    <button class="dpad-btn" onclick="snakeDir(0,1)">▼</button>
-    <div></div>
+  <!-- 수학 퀴즈 -->
+  <div id="math-quiz" style="display:none;flex-direction:column;align-items:center;gap:18px;width:100%">
+    <div id="math-progress" style="font-size:0.9rem;color:rgba(255,255,255,0.7)"></div>
+    <div id="math-expr" style="font-size:3rem;font-weight:900;color:#fff;background:rgba(255,255,255,0.1);border-radius:20px;padding:24px 36px;border:3px solid rgba(255,255,255,0.2);text-align:center;letter-spacing:2px"></div>
+    <div id="math-choices" style="display:flex;flex-direction:row;gap:12px;width:100%;max-width:340px;justify-content:center"></div>
+    <div id="math-feedback" style="font-size:1.3rem;font-weight:800;min-height:2rem;text-align:center"></div>
+  </div>
+
+  <!-- 한자 퀴즈 -->
+  <div id="hanja-quiz" style="display:none;flex-direction:column;align-items:center;gap:18px;width:100%">
+    <div id="hanja-progress-label" style="font-size:0.9rem;color:rgba(255,255,255,0.7)"></div>
+    <div id="hanja-char"></div>
+    <div id="hanja-hint"></div>
+    <div id="hanja-choices" style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px"></div>
+    <div id="hanja-feedback"></div>
   </div>
 
   <button class="btn-back" onclick="backToReading()">📖 다시 읽기 화면으로</button>
@@ -475,7 +499,7 @@ showCurrent();
 // ═══════════════════════════════════════════
 //  게임 선택 및 시작
 // ═══════════════════════════════════════════
-const GAMES = ['snake', 'mole', 'breakout'];
+const GAMES = ['math', 'mole', 'breakout', 'hanja'];
 let chosenGame = '';
 
 function startGame() {
@@ -484,9 +508,10 @@ function startGame() {
   const gs = document.getElementById('game-screen');
   gs.style.display = 'flex';
 
-  if (chosenGame === 'snake')    initSnake();
-  else if (chosenGame === 'mole') initMole();
+  if (chosenGame === 'math')          initMath();
+  else if (chosenGame === 'mole')     initMole();
   else if (chosenGame === 'breakout') initBreakout();
+  else if (chosenGame === 'hanja')    initHanja();
 }
 
 function resetReading() {
@@ -508,10 +533,11 @@ function backToReading() {
 }
 
 function stopAllGames() {
-  clearInterval(snakeInterval);
   clearTimeout(moleTimeout);
   clearInterval(moleTimerInterval);
   if (breakoutAnimId) cancelAnimationFrame(breakoutAnimId);
+  clearTimeout(hanjaNextTimeout);
+  clearTimeout(mathNextTimeout);
 }
 
 // ─── 공통 UI 헬퍼 ───
@@ -521,164 +547,131 @@ function showCanvas()    {
   document.getElementById('game-wrap').style.display = 'block';
   document.getElementById('mole-grid').style.display = 'none';
   document.getElementById('mole-timer-bar-wrap').style.display = 'none';
-  document.getElementById('dpad').style.display = '';
+  document.getElementById('hanja-quiz').style.display = 'none';
+  document.getElementById('math-quiz').style.display = 'none';
   document.getElementById('breakout-hint').style.display = '';
 }
 function showMoleGrid()  {
   document.getElementById('game-wrap').style.display = 'none';
   document.getElementById('mole-grid').style.display = 'grid';
   document.getElementById('mole-timer-bar-wrap').style.display = 'block';
-  document.getElementById('dpad').style.display = 'none';
   document.getElementById('breakout-hint').style.display = 'none';
+  document.getElementById('hanja-quiz').style.display = 'none';
+  document.getElementById('math-quiz').style.display = 'none';
+}
+function showHanjaUI() {
+  document.getElementById('game-wrap').style.display = 'none';
+  document.getElementById('mole-grid').style.display = 'none';
+  document.getElementById('mole-timer-bar-wrap').style.display = 'none';
+  document.getElementById('breakout-hint').style.display = 'none';
+  document.getElementById('hanja-quiz').style.display = 'flex';
+  document.getElementById('math-quiz').style.display = 'none';
+}
+function showMathUI() {
+  document.getElementById('game-wrap').style.display = 'none';
+  document.getElementById('mole-grid').style.display = 'none';
+  document.getElementById('mole-timer-bar-wrap').style.display = 'none';
+  document.getElementById('breakout-hint').style.display = 'none';
+  document.getElementById('hanja-quiz').style.display = 'none';
+  document.getElementById('math-quiz').style.display = 'flex';
 }
 
 // ═══════════════════════════════════════════
-//  🐍 뱀 게임
+//  ➕ 숫자 더하기 빼기 퀴즈
 // ═══════════════════════════════════════════
-let snakeInterval = null;
-const CELL = 18, COLS = 20, ROWS = 20;
+let mathNextTimeout = null;
+let mathIdx = 0, mathScore = 0;
+const MATH_TOTAL = 10;
 
-let snake, dir, nextDir, food, snakeScore, snakeRunning;
-
-function initSnake() {
-  setGameTitle('🐍 뱀 게임');
-  showCanvas();
-  document.getElementById('breakout-hint').style.display = 'none';
-
-  const canvas = document.getElementById('game-canvas');
-  canvas.width  = COLS * CELL;
-  canvas.height = ROWS * CELL;
-
-  snake = [{x:10, y:10},{x:9,y:10},{x:8,y:10}];
-  dir = {x:1, y:0};
-  nextDir = {x:1, y:0};
-  snakeScore = 0;
-  snakeRunning = true;
-  placeFood();
-  setScore('점수: 0');
-
-  clearInterval(snakeInterval);
-  snakeInterval = setInterval(snakeTick, 150);
+function initMath() {
+  setGameTitle('🔢 더하기 빼기 퀴즈');
+  showMathUI();
+  mathIdx = 0;
+  mathScore = 0;
+  setScore('');
+  showMathQuestion();
 }
 
-function placeFood() {
-  let pos;
-  do {
-    pos = { x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS) };
-  } while (snake.some(s => s.x===pos.x && s.y===pos.y));
-  food = pos;
-}
-
-function snakeDir(dx, dy) {
-  if (dx===1 && dir.x===-1) return;
-  if (dx===-1 && dir.x===1) return;
-  if (dy===1 && dir.y===-1) return;
-  if (dy===-1 && dir.y===1) return;
-  nextDir = {x:dx, y:dy};
-}
-
-function snakeTick() {
-  if (!snakeRunning) return;
-  dir = {...nextDir};
-  const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-
-  if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS ||
-      snake.some(s => s.x===head.x && s.y===head.y)) {
-    snakeRunning = false;
-    clearInterval(snakeInterval);
-    drawSnake(true);
-    return;
-  }
-
-  snake.unshift(head);
-  if (head.x === food.x && head.y === food.y) {
-    snakeScore++;
-    setScore('점수: ' + snakeScore);
-    placeFood();
+function makeMathQuestion() {
+  const level = Math.floor(mathIdx / 3); // 0~2: 쉬움, 3~5: 중간, 6~9: 어려움
+  let a, b, op, answer;
+  if (level === 0) {
+    a = Math.floor(Math.random() * 10) + 1;
+    b = Math.floor(Math.random() * 10) + 1;
+    op = Math.random() < 0.5 ? '+' : '-';
+    if (op === '-' && b > a) [a, b] = [b, a];
+  } else if (level === 1) {
+    a = Math.floor(Math.random() * 20) + 5;
+    b = Math.floor(Math.random() * 15) + 1;
+    op = Math.random() < 0.5 ? '+' : '-';
+    if (op === '-' && b > a) [a, b] = [b, a];
   } else {
-    snake.pop();
+    a = Math.floor(Math.random() * 50) + 10;
+    b = Math.floor(Math.random() * 30) + 5;
+    op = Math.random() < 0.5 ? '+' : '-';
+    if (op === '-' && b > a) [a, b] = [b, a];
   }
-  drawSnake(false);
+  answer = op === '+' ? a + b : a - b;
+  return { expr: `${a} ${op} ${b} = ?`, answer };
 }
 
-function drawSnake(gameover) {
-  const canvas = document.getElementById('game-canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#1a1a2e';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+function showMathQuestion() {
+  const q = makeMathQuestion();
+  document.getElementById('math-progress').textContent = `${mathIdx + 1} / ${MATH_TOTAL}문제`;
+  document.getElementById('math-expr').textContent = q.expr;
+  document.getElementById('math-feedback').textContent = '';
+  setScore(`점수: ${mathScore}`);
 
-  // 격자
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 1;
-  for (let i=0; i<=COLS; i++) { ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo(i*CELL,canvas.height); ctx.stroke(); }
-  for (let j=0; j<=ROWS; j++) { ctx.beginPath(); ctx.moveTo(0,j*CELL); ctx.lineTo(canvas.width,j*CELL); ctx.stroke(); }
+  // 보기 3개: 정답 + 오답 2개 (중복 없이)
+  const wrong = new Set();
+  while (wrong.size < 2) {
+    const offset = Math.floor(Math.random() * 10) + 1;
+    const w = Math.random() < 0.5 ? q.answer + offset : q.answer - offset;
+    if (w !== q.answer && w >= 0) wrong.add(w);
+  }
+  const choices = [q.answer, ...[...wrong]].sort(() => Math.random() - 0.5);
 
-  // 음식
-  ctx.font = (CELL-2) + 'px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('🍎', food.x*CELL + CELL/2, food.y*CELL + CELL/2);
-
-  // 뱀
-  snake.forEach((s, i) => {
-    const grd = ctx.createRadialGradient(
-      s.x*CELL+CELL/2, s.y*CELL+CELL/2, 1,
-      s.x*CELL+CELL/2, s.y*CELL+CELL/2, CELL/2
-    );
-    grd.addColorStop(0, i===0 ? '#a5d6a7' : '#66bb6a');
-    grd.addColorStop(1, i===0 ? '#388e3c' : '#2e7d32');
-    ctx.fillStyle = gameover ? 'rgba(200,50,50,0.8)' : grd;
-    ctx.beginPath();
-    ctx.roundRect(s.x*CELL+1, s.y*CELL+1, CELL-2, CELL-2, 4);
-    ctx.fill();
-
-    if (i === 0) {
-      ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(s.x*CELL+CELL*0.3, s.y*CELL+CELL*0.35, 2, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(s.x*CELL+CELL*0.7, s.y*CELL+CELL*0.35, 2, 0, Math.PI*2); ctx.fill();
-    }
+  const box = document.getElementById('math-choices');
+  box.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'hanja-btn';
+    btn.textContent = c;
+    btn.style.fontSize = '1.6rem';
+    btn.onclick = () => answerMath(c === q.answer, c, q.answer, btn, box);
+    box.appendChild(btn);
   });
-
-  if (gameover) {
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('게임 오버!', canvas.width/2, canvas.height/2 - 20);
-    ctx.font = '18px sans-serif';
-    ctx.fillText('점수: ' + snakeScore, canvas.width/2, canvas.height/2 + 16);
-    ctx.font = '14px sans-serif';
-    ctx.fillStyle = '#aaa';
-    ctx.fillText('(화면을 클릭하면 재시작)', canvas.width/2, canvas.height/2 + 46);
-  }
 }
 
-document.getElementById('game-canvas').addEventListener('click', () => {
-  if (chosenGame === 'snake' && !snakeRunning) initSnake();
-});
-
-document.addEventListener('keydown', e => {
-  if (chosenGame !== 'snake') return;
-  const map = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
-                w:[0,-1], s:[0,1], a:[-1,0], d:[1,0] };
-  const k = map[e.key];
-  if (k) { e.preventDefault(); snakeDir(k[0], k[1]); }
-});
-
-// ─── 스와이프 ───
-let touchStartX = 0, touchStartY = 0;
-document.getElementById('game-canvas').addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-}, {passive:true});
-document.getElementById('game-canvas').addEventListener('touchend', e => {
-  if (chosenGame !== 'snake') return;
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if (Math.abs(dx) > Math.abs(dy)) snakeDir(dx>0?1:-1, 0);
-  else snakeDir(0, dy>0?1:-1);
-});
+function answerMath(correct, chosen, answer, clickedBtn, box) {
+  box.querySelectorAll('.hanja-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('math-feedback');
+  if (correct) {
+    clickedBtn.classList.add('correct');
+    fb.textContent = '🎉 정답!';
+    fb.style.color = '#a5d6a7';
+    mathScore += 10;
+    setScore(`점수: ${mathScore}`);
+  } else {
+    clickedBtn.classList.add('wrong');
+    box.querySelectorAll('.hanja-btn').forEach(b => {
+      if (Number(b.textContent) === answer) b.classList.add('correct');
+    });
+    fb.textContent = `😅 틀렸어요! 정답은 ${answer}`;
+    fb.style.color = '#ef9a9a';
+  }
+  mathIdx++;
+  if (mathIdx < MATH_TOTAL) {
+    mathNextTimeout = setTimeout(showMathQuestion, 1600);
+  } else {
+    mathNextTimeout = setTimeout(() => {
+      document.getElementById('math-expr').textContent = '🏆';
+      document.getElementById('math-choices').innerHTML = '';
+      fb.style.color = '#FFD700';
+      fb.textContent = `완료! 최종 점수: ${mathScore} / ${MATH_TOTAL * 10}점`;
+    }, 1600);
+  }
+}
 
 // ═══════════════════════════════════════════
 //  🔨 두더지 잡기
@@ -958,6 +951,184 @@ function breakoutDraw() {
 document.getElementById('game-canvas').addEventListener('click', () => {
   if (chosenGame === 'breakout' && !brkState.running) initBreakout();
 });
+
+// ═══════════════════════════════════════════
+//  🀄 한자 퀴즈
+// ═══════════════════════════════════════════
+const hanjaList = [
+  // 자연
+  { char:'山', sound:'산', mean:'메 산', hint:'산을 그린 글자예요' },
+  { char:'水', sound:'수', mean:'물 수', hint:'물이 흐르는 모양이에요' },
+  { char:'火', sound:'화', mean:'불 화', hint:'불꽃이 타오르는 모양이에요' },
+  { char:'木', sound:'목', mean:'나무 목', hint:'나무를 그린 글자예요' },
+  { char:'土', sound:'토', mean:'흙 토', hint:'땅속의 흙을 나타내요' },
+  { char:'日', sound:'일', mean:'날 일 / 해 일', hint:'해를 그린 글자예요' },
+  { char:'月', sound:'월', mean:'달 월', hint:'달을 그린 글자예요' },
+  { char:'天', sound:'천', mean:'하늘 천', hint:'사람 위의 하늘이에요' },
+  { char:'地', sound:'지', mean:'땅 지', hint:'흙이 펼쳐진 땅이에요' },
+  { char:'風', sound:'풍', mean:'바람 풍', hint:'바람이 부는 모양이에요' },
+  { char:'雨', sound:'우', mean:'비 우', hint:'하늘에서 빗방울이 떨어져요' },
+  { char:'雪', sound:'설', mean:'눈 설', hint:'비가 얼어서 내리는 눈이에요' },
+  { char:'花', sound:'화', mean:'꽃 화', hint:'풀에서 피어나는 꽃이에요' },
+  { char:'草', sound:'초', mean:'풀 초', hint:'땅에서 자라는 풀이에요' },
+  { char:'石', sound:'석', mean:'돌 석', hint:'벼랑에 있는 돌이에요' },
+  { char:'林', sound:'림', mean:'수풀 림', hint:'나무 두 그루가 있어요' },
+  { char:'森', sound:'삼', mean:'빽빽할 삼', hint:'나무 세 그루가 빽빽해요' },
+  { char:'海', sound:'해', mean:'바다 해', hint:'넓고 깊은 바다예요' },
+  { char:'江', sound:'강', mean:'강 강', hint:'물이 흐르는 강이에요' },
+  { char:'川', sound:'천', mean:'내 천', hint:'시냇물이 흐르는 모양이에요' },
+  // 사람·신체
+  { char:'人', sound:'인', mean:'사람 인', hint:'사람이 서 있는 모양이에요' },
+  { char:'大', sound:'대', mean:'큰 대', hint:'두 팔 벌린 사람 모양이에요' },
+  { char:'小', sound:'소', mean:'작을 소', hint:'작은 점 세 개예요' },
+  { char:'口', sound:'구', mean:'입 구', hint:'입의 모양을 그렸어요' },
+  { char:'手', sound:'수', mean:'손 수', hint:'손가락이 있는 손이에요' },
+  { char:'耳', sound:'이', mean:'귀 이', hint:'귀의 모양을 그렸어요' },
+  { char:'目', sound:'목', mean:'눈 목', hint:'눈동자가 있는 눈이에요' },
+  { char:'足', sound:'족', mean:'발 족', hint:'발과 발목의 모양이에요' },
+  { char:'心', sound:'심', mean:'마음 심', hint:'심장 모양을 그렸어요' },
+  { char:'頭', sound:'두', mean:'머리 두', hint:'머리를 나타내는 글자예요' },
+  { char:'面', sound:'면', mean:'얼굴 면', hint:'얼굴의 모양을 그렸어요' },
+  // 가족
+  { char:'父', sound:'부', mean:'아버지 부', hint:'손에 회초리를 든 모양이에요' },
+  { char:'母', sound:'모', mean:'어머니 모', hint:'젖을 먹이는 어머니예요' },
+  { char:'子', sound:'자', mean:'아들 자', hint:'아기가 두 팔 뻗은 모양이에요' },
+  { char:'女', sound:'녀', mean:'계집 녀', hint:'여성이 앉아있는 모양이에요' },
+  { char:'兄', sound:'형', mean:'형 형', hint:'큰 사람이 앞에 있어요' },
+  { char:'弟', sound:'제', mean:'아우 제', hint:'형 아래 동생이에요' },
+  { char:'家', sound:'가', mean:'집 가', hint:'지붕 아래 돼지가 있어요' },
+  // 학교·공부
+  { char:'學', sound:'학', mean:'배울 학', hint:'공부하는 모양을 나타내요' },
+  { char:'校', sound:'교', mean:'학교 교', hint:'나무로 지은 학교예요' },
+  { char:'先', sound:'선', mean:'먼저 선', hint:'앞서 나아가는 사람이에요' },
+  { char:'生', sound:'생', mean:'날 생', hint:'풀이 땅에서 자라나요' },
+  { char:'友', sound:'우', mean:'벗 우', hint:'손을 맞잡은 두 사람이에요' },
+  { char:'書', sound:'서', mean:'글 서', hint:'붓으로 글을 써요' },
+  { char:'文', sound:'문', mean:'글월 문', hint:'무늬처럼 새긴 글자예요' },
+  { char:'字', sound:'자', mean:'글자 자', hint:'집 안에서 글을 배워요' },
+  { char:'問', sound:'문', mean:'물을 문', hint:'문에서 입으로 물어봐요' },
+  { char:'答', sound:'답', mean:'대답할 답', hint:'대나무 위에 답이 있어요' },
+  // 숫자·방향
+  { char:'一', sound:'일', mean:'한 일', hint:'선 하나예요' },
+  { char:'二', sound:'이', mean:'두 이', hint:'선 두 개예요' },
+  { char:'三', sound:'삼', mean:'세 삼', hint:'선 세 개예요' },
+  { char:'四', sound:'사', mean:'넉 사', hint:'숨구멍 네 개예요' },
+  { char:'五', sound:'오', mean:'다섯 오', hint:'다섯 손가락이에요' },
+  { char:'六', sound:'육', mean:'여섯 육', hint:'여섯을 나타내요' },
+  { char:'七', sound:'칠', mean:'일곱 칠', hint:'일곱을 나타내요' },
+  { char:'八', sound:'팔', mean:'여덟 팔', hint:'나뉜 모양이에요' },
+  { char:'九', sound:'구', mean:'아홉 구', hint:'아홉을 나타내요' },
+  { char:'十', sound:'십', mean:'열 십', hint:'가로세로 선이 열이에요' },
+  { char:'百', sound:'백', mean:'일백 백', hint:'백을 나타내요' },
+  { char:'千', sound:'천', mean:'일천 천', hint:'천을 나타내요' },
+  { char:'上', sound:'상', mean:'위 상', hint:'기준선 위를 나타내요' },
+  { char:'下', sound:'하', mean:'아래 하', hint:'기준선 아래를 나타내요' },
+  { char:'中', sound:'중', mean:'가운데 중', hint:'가운데를 꿰뚫은 모양이에요' },
+  { char:'左', sound:'좌', mean:'왼 좌', hint:'왼쪽을 나타내요' },
+  { char:'右', sound:'우', mean:'오른 우', hint:'오른쪽을 나타내요' },
+  // 색깔·성질
+  { char:'金', sound:'금', mean:'쇠 금 / 금 금', hint:'땅속 금속을 나타내요' },
+  { char:'白', sound:'백', mean:'흰 백', hint:'해가 뜰 때 하얀 빛이에요' },
+  { char:'靑', sound:'청', mean:'푸를 청', hint:'풀과 우물을 합친 글자예요' },
+  { char:'黑', sound:'흑', mean:'검을 흑', hint:'불 탄 자리가 검어요' },
+  { char:'赤', sound:'적', mean:'붉을 적', hint:'큰 불꽃처럼 붉어요' },
+  // 기타 생활
+  { char:'力', sound:'력', mean:'힘 력', hint:'팔 힘줄의 모양이에요' },
+  { char:'門', sound:'문', mean:'문 문', hint:'두 짝 문의 모양이에요' },
+  { char:'車', sound:'차', mean:'수레 차', hint:'바퀴 달린 수레예요' },
+  { char:'食', sound:'식', mean:'먹을 식', hint:'밥을 먹는 모양이에요' },
+  { char:'王', sound:'왕', mean:'임금 왕', hint:'세상을 다스리는 왕이에요' },
+  { char:'國', sound:'국', mean:'나라 국', hint:'땅과 백성이 있는 나라예요' },
+  { char:'民', sound:'민', mean:'백성 민', hint:'눈을 찌르는 모양이에요' },
+  { char:'年', sound:'년', mean:'해 년', hint:'벼를 거두는 한 해예요' },
+  { char:'時', sound:'시', mean:'때 시', hint:'해의 움직임으로 시간을 알아요' },
+  { char:'安', sound:'안', mean:'편안할 안', hint:'집 안에 여자가 있으면 편안해요' },
+  { char:'平', sound:'평', mean:'평평할 평', hint:'고르고 평평한 모양이에요' },
+  { char:'正', sound:'정', mean:'바를 정', hint:'목표를 향해 곧게 가요' },
+  { char:'立', sound:'립', mean:'설 립', hint:'사람이 땅 위에 서 있어요' },
+  { char:'出', sound:'출', mean:'날 출', hint:'싹이 땅 위로 나와요' },
+  { char:'入', sound:'입', mean:'들 입', hint:'안으로 들어가는 모양이에요' },
+];
+
+let hanjaNextTimeout = null;
+let hanjaQ = [], hanjaIdx = 0, hanjaScore = 0;
+const HANJA_TOTAL = 10;
+
+function initHanja() {
+  setGameTitle('🀄 한자 퀴즈');
+  showHanjaUI();
+
+  // HANJA_TOTAL개 랜덤 선택
+  const shuffled = [...hanjaList].sort(() => Math.random() - 0.5);
+  hanjaQ = shuffled.slice(0, HANJA_TOTAL);
+  hanjaIdx = 0;
+  hanjaScore = 0;
+  setScore('');
+  showHanjaQuestion();
+}
+
+function showHanjaQuestion() {
+  const q = hanjaQ[hanjaIdx];
+  document.getElementById('hanja-progress-label').textContent =
+    `${hanjaIdx + 1} / ${HANJA_TOTAL}문제`;
+  document.getElementById('hanja-char').textContent = q.char;
+  document.getElementById('hanja-hint').textContent = q.hint;
+  document.getElementById('hanja-feedback').textContent = '';
+  setScore(`점수: ${hanjaScore}`);
+
+  // 보기 3개: 정답 + 오답 2개
+  const wrongs = hanjaList
+    .filter(h => h.char !== q.char)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 2);
+  const choices = [q, ...wrongs].sort(() => Math.random() - 0.5);
+
+  const box = document.getElementById('hanja-choices');
+  box.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'hanja-btn';
+    btn.textContent = `${c.sound} — ${c.mean}`;
+    btn.onclick = () => answerHanja(c.char === q.char, btn, box);
+    box.appendChild(btn);
+  });
+}
+
+function answerHanja(correct, clickedBtn, box) {
+  // 모든 버튼 비활성화
+  box.querySelectorAll('.hanja-btn').forEach(b => b.disabled = true);
+
+  const fb = document.getElementById('hanja-feedback');
+  if (correct) {
+    clickedBtn.classList.add('correct');
+    fb.textContent = '🎉 정답!';
+    fb.style.color = '#a5d6a7';
+    hanjaScore += 10;
+    setScore(`점수: ${hanjaScore}`);
+  } else {
+    clickedBtn.classList.add('wrong');
+    // 정답 표시
+    const q = hanjaQ[hanjaIdx];
+    box.querySelectorAll('.hanja-btn').forEach(b => {
+      if (b.textContent.startsWith(q.sound)) b.classList.add('correct');
+    });
+    fb.textContent = '😅 틀렸어요!';
+    fb.style.color = '#ef9a9a';
+  }
+
+  hanjaIdx++;
+  if (hanjaIdx < HANJA_TOTAL) {
+    hanjaNextTimeout = setTimeout(showHanjaQuestion, 1500);
+  } else {
+    hanjaNextTimeout = setTimeout(() => {
+      document.getElementById('hanja-char').textContent = '🏆';
+      document.getElementById('hanja-hint').textContent = '';
+      document.getElementById('hanja-choices').innerHTML = '';
+      fb.style.color = '#FFD700';
+      fb.textContent = `완료! 최종 점수: ${hanjaScore} / ${HANJA_TOTAL * 10}점`;
+    }, 1500);
+  }
+}
 </script>
 </body>
 </html>
