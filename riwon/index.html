@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Riwon's Roblox World 🧱</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; font-family: 'Arial', sans-serif; overflow: hidden; }
+
+    #ui {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.6);
+      color: white; z-index: 100;
+    }
+    #ui h1 { font-size: 20px; color: #ff6b35; text-shadow: 0 0 10px #ff6b35; }
+    #score { font-size: 18px; color: #ffd700; }
+    #health-bar { display: flex; gap: 4px; align-items: center; }
+    .heart { font-size: 20px; }
+
+    #canvas { display: block; }
+
+    #controls {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: grid; grid-template-columns: repeat(3, 50px); gap: 4px;
+      opacity: 0.7;
+    }
+    .ctrl-btn {
+      width: 50px; height: 50px;
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.4);
+      border-radius: 8px; color: white; font-size: 18px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ctrl-btn:active { background: rgba(255,255,255,0.4); }
+    .ctrl-btn.empty { visibility: hidden; }
+
+    #message {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: rgba(0,0,0,0.85);
+      color: white; padding: 30px 50px; border-radius: 16px;
+      font-size: 28px; text-align: center;
+      border: 3px solid #ff6b35;
+      display: none; z-index: 200;
+    }
+    #message button {
+      margin-top: 20px; padding: 12px 30px;
+      background: #ff6b35; border: none; border-radius: 8px;
+      color: white; font-size: 18px; cursor: pointer; display: block; width: 100%;
+    }
+    #message button:hover { background: #e55a2b; }
+
+    #tip {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,0.5); font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="ui">
+  <h1>🧱 Riwon's World</h1>
+  <div id="score">⭐ 점수: <span id="score-val">0</span></div>
+  <div id="health-bar">
+    <span class="heart" id="h1">❤️</span>
+    <span class="heart" id="h2">❤️</span>
+    <span class="heart" id="h3">❤️</span>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div id="controls">
+  <div class="ctrl-btn empty"></div>
+  <div class="ctrl-btn" id="btn-up">▲</div>
+  <div class="ctrl-btn empty"></div>
+  <div class="ctrl-btn" id="btn-left">◀</div>
+  <div class="ctrl-btn" id="btn-jump">⬆</div>
+  <div class="ctrl-btn" id="btn-right">▶</div>
+</div>
+
+<div id="tip">WASD 또는 화살표 이동 · Space 점프 · 🟡 코인 먹기 · 💣 장애물 피하기</div>
+
+<div id="message" id="msg">
+  <div id="msg-text">게임 오버!</div>
+  <button onclick="restartGame()">다시 시작 🔄</button>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// === 게임 상태 ===
+let score = 0, health = 3, gameOver = false, gameWon = false;
+let keys = {};
+
+// === 카메라 ===
+let camX = 0;
+
+// === 월드 설정 ===
+const TILE = 48;
+const GRAVITY = 0.6;
+const JUMP_FORCE = -13;
+const WORLD_WIDTH = 100 * TILE;
+
+// === 플레이어 ===
+const player = {
+  x: 2 * TILE, y: 0,
+  w: 36, h: 44,
+  vx: 0, vy: 0,
+  onGround: false,
+  color: '#4fc3f7',
+  hatColor: '#e53935',
+  frame: 0, frameTimer: 0
+};
+
+// === 파렛트 ===
+const COLORS = {
+  ground: '#4caf50',
+  groundTop: '#66bb6a',
+  brick: '#e65100',
+  brickDark: '#bf360c',
+  sky1: '#1565c0',
+  sky2: '#1a237e',
+  cloud: 'rgba(255,255,255,0.9)',
+  coin: '#ffd700',
+  enemy: '#f44336',
+  spike: '#b0bec5',
+  goal: '#ffd700',
+};
+
+// === 플랫폼 맵 ===
+const platforms = [
+  // 바닥
+  ...[...Array(100)].map((_,i) => ({ x: i*TILE, y: 10*TILE, w: TILE, h: 4*TILE, type:'ground' })),
+  // 공중 발판
+  { x:4*TILE,  y:8*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:8*TILE,  y:7*TILE,  w:2*TILE, h:TILE, type:'brick' },
+  { x:11*TILE, y:6*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:15*TILE, y:7*TILE,  w:4*TILE, h:TILE, type:'brick' },
+  { x:20*TILE, y:6*TILE,  w:2*TILE, h:TILE, type:'brick' },
+  { x:23*TILE, y:7*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:27*TILE, y:5*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:31*TILE, y:7*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:35*TILE, y:6*TILE,  w:2*TILE, h:TILE, type:'brick' },
+  { x:39*TILE, y:7*TILE,  w:4*TILE, h:TILE, type:'brick' },
+  { x:44*TILE, y:5*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:48*TILE, y:7*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:52*TILE, y:6*TILE,  w:2*TILE, h:TILE, type:'brick' },
+  { x:55*TILE, y:7*TILE,  w:4*TILE, h:TILE, type:'brick' },
+  { x:60*TILE, y:5*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:64*TILE, y:7*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:68*TILE, y:6*TILE,  w:2*TILE, h:TILE, type:'brick' },
+  { x:71*TILE, y:5*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:75*TILE, y:7*TILE,  w:4*TILE, h:TILE, type:'brick' },
+  { x:80*TILE, y:6*TILE,  w:2*TILE, h:TILE, type:'brick' },
+  { x:84*TILE, y:5*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:88*TILE, y:7*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:92*TILE, y:6*TILE,  w:3*TILE, h:TILE, type:'brick' },
+  { x:96*TILE, y:7*TILE,  w:3*TILE, h:TILE, type:'brick' },
+];
+
+// === 코인 ===
+let coins = [
+  4,5,6,8,11,12,15,16,17,20,23,24,27,28,31,32,35,39,40,44,45,
+  48,49,52,55,56,60,61,64,68,71,72,75,76,80,84,85,88,92,96
+].map(col => ({
+  x: col*TILE + TILE/2, y: 7.5*TILE - TILE,
+  r: 10, collected: false, bobOffset: Math.random()*Math.PI*2
+}));
+
+// 바닥 위 코인
+for(let i=0;i<25;i++) {
+  coins.push({ x:(i*4+1)*TILE+TILE/2, y:9.3*TILE, r:10, collected:false, bobOffset:i*0.5 });
+}
+
+// === 장애물 ===
+const enemies = [
+  { x:7*TILE, y:9.3*TILE-32, w:32, h:32, dir:1, speed:1.5, alive:true },
+  { x:14*TILE, y:9.3*TILE-32, w:32, h:32, dir:-1, speed:2, alive:true },
+  { x:22*TILE, y:9.3*TILE-32, w:32, h:32, dir:1, speed:1.8, alive:true },
+  { x:30*TILE, y:9.3*TILE-32, w:32, h:32, dir:-1, speed:2.2, alive:true },
+  { x:38*TILE, y:9.3*TILE-32, w:32, h:32, dir:1, speed:2.5, alive:true },
+  { x:47*TILE, y:9.3*TILE-32, w:32, h:32, dir:-1, speed:1.5, alive:true },
+  { x:58*TILE, y:9.3*TILE-32, w:32, h:32, dir:1, speed:2, alive:true },
+  { x:67*TILE, y:9.3*TILE-32, w:32, h:32, dir:-1, speed:2.5, alive:true },
+  { x:76*TILE, y:9.3*TILE-32, w:32, h:32, dir:1, speed:1.8, alive:true },
+  { x:86*TILE, y:9.3*TILE-32, w:32, h:32, dir:-1, speed:2.2, alive:true },
+].map(e => ({ ...e, startX: e.x }));
+
+// === 구름 ===
+const clouds = [...Array(20)].map((_,i) => ({
+  x: i * 500 + Math.random()*200,
+  y: 60 + Math.random()*120,
+  w: 80 + Math.random()*60,
+  h: 30 + Math.random()*20,
+}));
+
+// === 골 깃발 ===
+const goal = { x: 98*TILE, y: 7*TILE };
+
+// === 입력 ===
+document.addEventListener('keydown', e => keys[e.code] = true);
+document.addEventListener('keyup', e => keys[e.code] = false);
+
+let invincible = 0;
+
+function hitPlayer() {
+  if(invincible > 0) return;
+  health--;
+  invincible = 90;
+  updateHearts();
+  if(health <= 0) endGame(false);
+}
+
+function updateHearts() {
+  ['h1','h2','h3'].forEach((id,i) => {
+    document.getElementById(id).textContent = i < health ? '❤️' : '🖤';
+  });
+}
+
+// === AABB 충돌 ===
+function rectOverlap(ax,ay,aw,ah,bx,by,bw,bh) {
+  return ax < bx+bw && ax+aw > bx && ay < by+bh && ay+ah > by;
+}
+
+function collideWithPlatforms(obj) {
+  obj.onGround = false;
+  for(const p of platforms) {
+    if(!rectOverlap(obj.x,obj.y,obj.w,obj.h,p.x,p.y,p.w,p.h)) continue;
+    const overlapX = Math.min(obj.x+obj.w, p.x+p.w) - Math.max(obj.x, p.x);
+    const overlapY = Math.min(obj.y+obj.h, p.y+p.h) - Math.max(obj.y, p.y);
+    if(overlapX < overlapY) {
+      if(obj.x < p.x) obj.x = p.x - obj.w;
+      else obj.x = p.x + p.w;
+      obj.vx = 0;
+    } else {
+      if(obj.y < p.y) { obj.y = p.y - obj.h; obj.vy = 0; obj.onGround = true; }
+      else { obj.y = p.y + p.h; obj.vy = 0; }
+    }
+  }
+}
+
+// === 업데이트 ===
+let t = 0;
+function update() {
+  if(gameOver || gameWon) return;
+  t++;
+  if(invincible > 0) invincible--;
+
+  // 플레이어 이동
+  const spd = 4.5;
+  if(keys['ArrowLeft'] || keys['KeyA']) player.vx = -spd;
+  else if(keys['ArrowRight'] || keys['KeyD']) player.vx = spd;
+  else player.vx *= 0.8;
+
+  if((keys['Space'] || keys['ArrowUp'] || keys['KeyW']) && player.onGround) {
+    player.vy = JUMP_FORCE;
+  }
+
+  player.vy += GRAVITY;
+  player.x += player.vx;
+  player.y += player.vy;
+
+  player.x = Math.max(0, Math.min(WORLD_WIDTH - player.w, player.x));
+
+  collideWithPlatforms(player);
+
+  // 낙사
+  if(player.y > H + 100) { hitPlayer(); player.x = 2*TILE; player.y = 5*TILE; player.vy=0; }
+
+  // 카메라
+  const targetCamX = player.x - W/2 + player.w/2;
+  camX += (targetCamX - camX) * 0.12;
+  camX = Math.max(0, Math.min(WORLD_WIDTH - W, camX));
+
+  // 코인
+  coins.forEach(c => {
+    if(!c.collected && rectOverlap(player.x,player.y,player.w,player.h, c.x-c.r,c.y-c.r,c.r*2,c.r*2)) {
+      c.collected = true;
+      score += 10;
+      document.getElementById('score-val').textContent = score;
+    }
+  });
+
+  // 적
+  enemies.forEach(e => {
+    if(!e.alive) return;
+    e.x += e.dir * e.speed;
+    if(Math.abs(e.x - e.startX) > 3*TILE) e.dir *= -1;
+    if(invincible === 0 && rectOverlap(player.x,player.y,player.w,player.h,e.x,e.y,e.w,e.h)) {
+      hitPlayer();
+    }
+  });
+
+  // 골
+  if(rectOverlap(player.x,player.y,player.w,player.h, goal.x, goal.y-60, 20, 80)) {
+    endGame(true);
+  }
+
+  // 걷기 애니메이션
+  if(Math.abs(player.vx) > 0.5) {
+    player.frameTimer++;
+    if(player.frameTimer > 8) { player.frame = (player.frame+1)%4; player.frameTimer=0; }
+  } else player.frame = 0;
+}
+
+// === 그리기 ===
+function drawSky() {
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, '#0d1b4b');
+  grad.addColorStop(1, '#1565c0');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
+}
+
+function drawClouds() {
+  ctx.fillStyle = COLORS.cloud;
+  clouds.forEach(c => {
+    const cx = c.x - camX * 0.3;
+    ctx.beginPath();
+    ctx.ellipse(cx, c.y, c.w/2, c.h/2, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.ellipse(cx-c.w*0.25, c.y+c.h*0.1, c.w*0.35, c.h*0.4, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.ellipse(cx+c.w*0.25, c.y+c.h*0.1, c.w*0.35, c.h*0.4, 0, 0, Math.PI*2);
+    ctx.fill();
+  });
+}
+
+function drawPlatform(p) {
+  const sx = p.x - camX, sy = p.y;
+  if(sx+p.w < 0 || sx > W) return;
+  if(p.type === 'ground') {
+    ctx.fillStyle = '#388e3c';
+    ctx.fillRect(sx, sy, p.w, p.h);
+    ctx.fillStyle = '#66bb6a';
+    ctx.fillRect(sx, sy, p.w, 10);
+    // 잔디
+    ctx.fillStyle = '#4caf50';
+    for(let i=0;i<p.w;i+=8) {
+      ctx.fillRect(sx+i, sy-4, 3, 5);
+    }
+  } else {
+    // 벽돌
+    ctx.fillStyle = '#e65100';
+    ctx.fillRect(sx, sy, p.w, p.h);
+    ctx.fillStyle = '#bf360c';
+    const bw=TILE/2, bh=TILE/2;
+    for(let row=0;row<Math.ceil(p.h/bh);row++) {
+      const off = (row%2)*bw/2;
+      for(let col=-1;col<=Math.ceil(p.w/bw)+1;col++) {
+        ctx.strokeStyle = '#8d2e00';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sx+col*bw+off+1, sy+row*bh+1, bw-2, bh-2);
+      }
+    }
+  }
+}
+
+function drawCoins() {
+  coins.forEach(c => {
+    if(c.collected) return;
+    const sx = c.x - camX;
+    if(sx < -20 || sx > W+20) return;
+    const bob = Math.sin(t*0.08 + c.bobOffset) * 4;
+    ctx.save();
+    ctx.shadowBlur = 12; ctx.shadowColor = '#ffd700';
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(sx, c.y + bob, c.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fff8dc';
+    ctx.beginPath();
+    ctx.arc(sx-2, c.y+bob-2, c.r*0.35, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawEnemies() {
+  enemies.forEach(e => {
+    if(!e.alive) return;
+    const sx = e.x - camX;
+    if(sx < -50 || sx > W+50) return;
+    // 몸
+    ctx.fillStyle = '#f44336';
+    ctx.fillRect(sx, e.y, e.w, e.h);
+    // 눈
+    ctx.fillStyle = 'white';
+    ctx.fillRect(sx+6, e.y+8, 8, 8);
+    ctx.fillRect(sx+e.w-14, e.y+8, 8, 8);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(sx+8, e.y+10, 4, 4);
+    ctx.fillRect(sx+e.w-12, e.y+10, 4, 4);
+    // 뿔
+    ctx.fillStyle = '#b71c1c';
+    ctx.beginPath();
+    ctx.moveTo(sx+6,e.y); ctx.lineTo(sx+10,e.y-10); ctx.lineTo(sx+14,e.y); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(sx+e.w-14,e.y); ctx.lineTo(sx+e.w-10,e.y-10); ctx.lineTo(sx+e.w-6,e.y); ctx.fill();
+  });
+}
+
+function drawPlayer() {
+  const sx = player.x - camX, sy = player.y;
+  const flash = invincible > 0 && Math.floor(invincible/5)%2===0;
+  if(flash) return;
+
+  // 몸통
+  ctx.fillStyle = player.color;
+  ctx.fillRect(sx+4, sy+16, player.w-8, player.h-20);
+  // 얼굴
+  ctx.fillStyle = '#ffcc80';
+  ctx.fillRect(sx+6, sy+4, player.w-12, 18);
+  // 모자
+  ctx.fillStyle = player.hatColor;
+  ctx.fillRect(sx+2, sy, player.w-4, 8);
+  ctx.fillRect(sx-2, sy+6, player.w+4, 4);
+  // 눈
+  ctx.fillStyle = '#333';
+  ctx.fillRect(sx+10, sy+8, 5, 5);
+  ctx.fillRect(sx+player.w-15, sy+8, 5, 5);
+  // 입
+  ctx.fillStyle = '#333';
+  ctx.fillRect(sx+12, sy+16, player.w-24, 2);
+  // 다리 (애니메이션)
+  const legOff = [0,3,0,-3][player.frame];
+  ctx.fillStyle = '#1565c0';
+  ctx.fillRect(sx+5, sy+player.h-12, 11, 12);
+  ctx.fillRect(sx+player.w-16, sy+player.h-12+legOff, 11, 12);
+  // 신발
+  ctx.fillStyle = '#333';
+  ctx.fillRect(sx+4, sy+player.h-4, 13, 4);
+  ctx.fillRect(sx+player.w-17, sy+player.h-4+legOff, 13, 4);
+}
+
+function drawGoal() {
+  const sx = goal.x - camX;
+  // 깃대
+  ctx.fillStyle = '#795548';
+  ctx.fillRect(sx, goal.y-80, 6, 80);
+  // 깃발
+  ctx.fillStyle = '#f44336';
+  ctx.beginPath();
+  ctx.moveTo(sx+6, goal.y-80);
+  ctx.lineTo(sx+36, goal.y-65);
+  ctx.lineTo(sx+6, goal.y-50);
+  ctx.fill();
+  // GOAL 텍스트
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('GOAL!', sx+3, goal.y-90);
+  ctx.textAlign = 'left';
+}
+
+function drawHUD() {
+  // 미니맵
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(W-160, 50, 150, 20);
+  const px = ((player.x/WORLD_WIDTH)*150);
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillRect(W-160+px-3, 52, 6, 16);
+  ctx.fillStyle = '#ffd700';
+  const gx = (goal.x/WORLD_WIDTH)*150;
+  ctx.fillRect(W-160+gx-2, 53, 4, 14);
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.strokeRect(W-160, 50, 150, 20);
+}
+
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  drawSky();
+  drawClouds();
+  platforms.forEach(drawPlatform);
+  drawCoins();
+  drawEnemies();
+  drawGoal();
+  drawPlayer();
+  drawHUD();
+}
+
+// === 게임 종료 ===
+function endGame(won) {
+  if(won) gameWon = true; else gameOver = true;
+  const msg = document.getElementById('message');
+  const txt = document.getElementById('msg-text');
+  txt.innerHTML = won
+    ? `🎉 축하해요!<br>최종 점수: <span style="color:#ffd700">${score}</span>점`
+    : `💀 게임 오버!<br>점수: <span style="color:#ffd700">${score}</span>점`;
+  msg.style.display = 'block';
+}
+
+function restartGame() {
+  score = 0; health = 3; gameOver = false; gameWon = false; invincible = 0;
+  document.getElementById('score-val').textContent = '0';
+  updateHearts();
+  player.x = 2*TILE; player.y = 5*TILE; player.vx=0; player.vy=0;
+  coins.forEach(c => c.collected = false);
+  enemies.forEach((e,i) => { e.alive=true; e.x=e.startX; });
+  document.getElementById('message').style.display = 'none';
+}
+
+// === 모바일 버튼 ===
+const btnMap = {
+  'btn-left':  () => keys['ArrowLeft'] = true,
+  'btn-right': () => keys['ArrowRight'] = true,
+  'btn-up':    () => keys['ArrowUp'] = true,
+  'btn-jump':  () => keys['Space'] = true,
+};
+Object.entries(btnMap).forEach(([id, fn]) => {
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart', e => { e.preventDefault(); fn(); });
+  el.addEventListener('touchend', e => {
+    e.preventDefault();
+    keys['ArrowLeft']=keys['ArrowRight']=keys['ArrowUp']=keys['Space']=false;
+  });
+  el.addEventListener('mousedown', fn);
+  el.addEventListener('mouseup', () => {
+    keys['ArrowLeft']=keys['ArrowRight']=keys['ArrowUp']=keys['Space']=false;
+  });
+});
+
+// === 메인 루프 ===
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
