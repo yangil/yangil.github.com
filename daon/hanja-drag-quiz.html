@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>한자 쓰기 퀴즈</title>
+<style>
+  :root {
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f2f0eb;
+    font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    color: #2b2b2b;
+  }
+  .app {
+    width: 360px;
+    max-width: 92vw;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    padding: 24px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 18px;
+    margin: 0 0 4px;
+  }
+  .progress {
+    font-size: 18px;
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  .timer {
+    font-size: 22px;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 12px;
+  }
+  .timer.warn {
+    color: #c0392b;
+  }
+  .meaning {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    min-height: 38px;
+  }
+  .canvas-wrap {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 16px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    touch-action: none;
+  }
+  .canvas-wrap canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  #drawCanvas { cursor: crosshair; }
+  .feedback {
+    min-height: 24px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .feedback.ok { color: #1a8a4a; }
+  .feedback.no { color: #c0392b; }
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .buttons-row {
+    display: flex;
+    gap: 8px;
+  }
+  button {
+    flex: 1;
+    padding: 12px 12px;
+    font-size: 17px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    background: #eee;
+    cursor: pointer;
+  }
+  button.primary {
+    background: #2b6cf6;
+    color: #fff;
+  }
+  button:active { opacity: 0.8; }
+  .result {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .result .score {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 8px 0 16px;
+  }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <h1>한자 쓰기 퀴즈</h1>
+
+    <div id="quizView">
+      <div class="progress" id="progress"></div>
+      <div class="timer" id="timer"></div>
+      <div class="meaning" id="meaning"></div>
+      <div class="canvas-wrap">
+        <canvas id="drawCanvas" width="300" height="300"></canvas>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="buttons">
+        <button id="checkBtn" class="primary">확인</button>
+        <div class="buttons-row">
+          <button id="clearBtn">다시 그리기</button>
+          <button id="passBtn">통과</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultView" class="result hidden">
+      <div>퀴즈 완료!</div>
+      <div class="score" id="scoreText"></div>
+      <button id="restartBtn" class="primary">다시 시작</button>
+    </div>
+  </div>
+
+<script>
+const HANJA_LIST = [
+  { char: "正", meaning: "바를 정" },
+  { char: "寸", meaning: "마디 촌" },
+  { char: "人", meaning: "사람 인" },
+  { char: "石", meaning: "돌 석" },
+  { char: "落", meaning: "떨어질 낙" },
+  { char: "止", meaning: "그칠 지" },
+  { char: "花", meaning: "꽃 화" },
+  { char: "土", meaning: "흙 토" },
+  { char: "中", meaning: "가운데 중" },
+  { char: "弟", meaning: "아우 제" },
+];
+
+const MATCH_THRESHOLD = 0.8; // min(precision, recall) 임계값. 너무 자주 틀리면 낮추고, 너무 쉬우면 올린다.
+const DIST_TOLERANCE = 14; // 정답 획과 사용자 획의 중심선이 이 픽셀 거리 이내면 "겹친 것"으로 인정
+const SIZE = 300;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const drawCanvas = document.getElementById("drawCanvas");
+const drawCtx = drawCanvas.getContext("2d");
+
+const progressEl = document.getElementById("progress");
+const timerEl = document.getElementById("timer");
+const meaningEl = document.getElementById("meaning");
+const feedbackEl = document.getElementById("feedback");
+const checkBtn = document.getElementById("checkBtn");
+const clearBtn = document.getElementById("clearBtn");
+const passBtn = document.getElementById("passBtn");
+const quizView = document.getElementById("quizView");
+const resultView = document.getElementById("resultView");
+const scoreText = document.getElementById("scoreText");
+const restartBtn = document.getElementById("restartBtn");
+
+const QUESTION_TIME_LIMIT = 20; // 문제당 제한 시간(초)
+let timerInterval = null;
+let timeLeft = 0;
+
+function updateTimerDisplay() {
+  timerEl.textContent = `남은 시간: ${timeLeft}초`;
+  timerEl.classList.toggle("warn", timeLeft < 10);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function startTimer() {
+  stopTimer();
+  timeLeft = QUESTION_TIME_LIMIT;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      stopTimer();
+      const score = computeMatchScore();
+      if (score >= MATCH_THRESHOLD) {
+        correctCount++;
+        feedbackEl.textContent = `시간 초과! 그래도 정답 (일치도 ${Math.round(score * 100)}%)`;
+        feedbackEl.className = "feedback ok";
+      } else {
+        feedbackEl.textContent = `시간 초과! (일치도 ${Math.round(score * 100)}%)`;
+        feedbackEl.className = "feedback no";
+      }
+      setTimeout(nextQuestion, 800);
+    }
+  }, 1000);
+}
+
+let queue = [];
+let index = 0;
+let correctCount = 0;
+let answerMask = null; // Uint8Array, 1 = 정답 글자가 칠해진 픽셀
+let answerDist = null; // Int32Array, 각 픽셀에서 가장 가까운 정답 잉크 픽셀까지의 격자 거리
+
+// 8방향 BFS로 각 픽셀에서 가장 가까운 "on" 픽셀까지의 거리를 계산 (근사 유클리드 거리)
+function bfsDistanceMap(mask, width, height) {
+  const dist = new Int32Array(width * height).fill(-1);
+  const queue = [];
+  for (let i = 0; i < mask.length; i++) {
+    if (mask[i]) {
+      dist[i] = 0;
+      queue.push(i);
+    }
+  }
+  let qi = 0;
+  while (qi < queue.length) {
+    const idx = queue[qi++];
+    const x = idx % width;
+    const y = (idx / width) | 0;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        const nIdx = ny * width + nx;
+        if (dist[nIdx] === -1) {
+          dist[nIdx] = dist[idx] + 1;
+          queue.push(nIdx);
+        }
+      }
+    }
+  }
+  return dist;
+}
+
+// 그려진 잉크(alpha>threshold)의 바운딩 박스를 찾는다. 빈 캔버스면 null.
+function findInkBBox(canvas, alphaThreshold = 40) {
+  const w = canvas.width;
+  const h = canvas.height;
+  const data = canvas.getContext("2d").getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (data[(y * w + x) * 4 + 3] > alphaThreshold) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return null;
+  return { minX, minY, maxX, maxY };
+}
+
+// 잉크의 바운딩 박스를 잘라 size x size 정사각형 중앙에 비율 유지하며 스케일링.
+// 이렇게 하면 크게 쓰든 작게 쓰든, 어디에 치우쳐 쓰든 "모양"만 비교된다.
+function normalizeInk(canvas, size = SIZE, padRatio = 0.12) {
+  const out = document.createElement("canvas");
+  out.width = size;
+  out.height = size;
+  const octx = out.getContext("2d");
+  const bbox = findInkBBox(canvas);
+  if (!bbox) return out; // 빈 캔버스
+  const bw = bbox.maxX - bbox.minX + 1;
+  const bh = bbox.maxY - bbox.minY + 1;
+  const target = size * (1 - padRatio * 2);
+  const scale = Math.min(target / bw, target / bh);
+  const dw = bw * scale;
+  const dh = bh * scale;
+  const dx = (size - dw) / 2;
+  const dy = (size - dh) / 2;
+  octx.drawImage(canvas, bbox.minX, bbox.minY, bw, bh, dx, dy, dw, dh);
+  return out;
+}
+
+function buildAnswerMask(char) {
+  const off = document.createElement("canvas");
+  off.width = SIZE;
+  off.height = SIZE;
+  const ctx = off.getContext("2d");
+  ctx.fillStyle = "#000";
+  ctx.font = "220px serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(char, SIZE / 2, SIZE / 2 + 10);
+  const normalized = normalizeInk(off);
+  const data = normalized.getContext("2d").getImageData(0, 0, SIZE, SIZE).data;
+  const mask = new Uint8Array(SIZE * SIZE);
+  for (let i = 0; i < mask.length; i++) {
+    mask[i] = data[i * 4 + 3] > 40 ? 1 : 0; // alpha 채널 기준
+  }
+  return mask;
+}
+
+function clearDrawing() {
+  drawCtx.clearRect(0, 0, SIZE, SIZE);
+}
+
+function loadQuestion() {
+  const q = queue[index];
+  progressEl.textContent = `${index + 1} / ${queue.length}`;
+  meaningEl.textContent = q.meaning;
+  feedbackEl.textContent = "";
+  feedbackEl.className = "feedback";
+  answerMask = buildAnswerMask(q.char);
+  answerDist = bfsDistanceMap(answerMask, SIZE, SIZE);
+  clearDrawing();
+  startTimer();
+}
+
+// 정확한 픽셀 겹침(IoU) 대신, 정답 획과 사용자 획의 중심선이 서로 가까운지를 본다.
+// precision: 사용자가 그린 픽셀 중 정답 잉크 근처인 비율 (엉뚱한 곳에 낙서하면 감점)
+// recall: 정답 잉크 중 사용자가 채운 픽셀 근처인 비율 (일부만 그리면 감점)
+// 굵기 차이에는 관대하지만, 위치/모양이 다르면 여전히 낮은 점수가 나온다.
+function computeMatchScore() {
+  const normalized = normalizeInk(drawCanvas);
+  const data = normalized.getContext("2d").getImageData(0, 0, SIZE, SIZE).data;
+  const userMask = new Uint8Array(SIZE * SIZE);
+  for (let i = 0; i < userMask.length; i++) {
+    userMask[i] = data[i * 4 + 3] > 40 ? 1 : 0;
+  }
+  const userDist = bfsDistanceMap(userMask, SIZE, SIZE);
+
+  let userOnCount = 0, userNear = 0;
+  for (let i = 0; i < userMask.length; i++) {
+    if (userMask[i]) {
+      userOnCount++;
+      if (answerDist[i] <= DIST_TOLERANCE) userNear++;
+    }
+  }
+  const precision = userOnCount ? userNear / userOnCount : 0;
+
+  let ansOnCount = 0, ansNear = 0;
+  for (let i = 0; i < answerMask.length; i++) {
+    if (answerMask[i]) {
+      ansOnCount++;
+      if (userDist[i] <= DIST_TOLERANCE) ansNear++;
+    }
+  }
+  const recall = ansOnCount ? ansNear / ansOnCount : 0;
+
+  // F1(조화평균)은 한쪽이 아주 높으면 다른 쪽이 낮아도 점수를 끌어올려서
+  // "획 일부만 그려도 통과"하는 문제가 생긴다. precision과 recall 둘 다
+  // 일정 수준 이상이어야 하므로 더 낮은 쪽을 최종 점수로 쓴다.
+  return Math.min(precision, recall);
+}
+
+function nextQuestion() {
+  index++;
+  if (index >= queue.length) {
+    showResult();
+  } else {
+    loadQuestion();
+  }
+}
+
+function showResult() {
+  quizView.classList.add("hidden");
+  resultView.classList.remove("hidden");
+  scoreText.textContent = `${correctCount} / ${queue.length}`;
+}
+
+function startQuiz() {
+  stopTimer();
+  queue = shuffle(HANJA_LIST);
+  index = 0;
+  correctCount = 0;
+  quizView.classList.remove("hidden");
+  resultView.classList.add("hidden");
+  loadQuestion();
+}
+
+// --- 드로잉 (마우스 + 터치 겸용 pointer events) ---
+let drawing = false;
+let lastX = 0;
+let lastY = 0;
+
+function getPos(e) {
+  const rect = drawCanvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (SIZE / rect.width),
+    y: (e.clientY - rect.top) * (SIZE / rect.height),
+  };
+}
+
+drawCanvas.addEventListener("pointerdown", (e) => {
+  drawing = true;
+  drawCanvas.setPointerCapture(e.pointerId);
+  const p = getPos(e);
+  lastX = p.x;
+  lastY = p.y;
+});
+
+drawCanvas.addEventListener("pointermove", (e) => {
+  if (!drawing) return;
+  const p = getPos(e);
+  drawCtx.strokeStyle = "#111";
+  drawCtx.lineWidth = 14;
+  drawCtx.lineCap = "round";
+  drawCtx.lineJoin = "round";
+  drawCtx.beginPath();
+  drawCtx.moveTo(lastX, lastY);
+  drawCtx.lineTo(p.x, p.y);
+  drawCtx.stroke();
+  lastX = p.x;
+  lastY = p.y;
+});
+
+function endStroke(e) {
+  drawing = false;
+}
+drawCanvas.addEventListener("pointerup", endStroke);
+drawCanvas.addEventListener("pointercancel", endStroke);
+drawCanvas.addEventListener("pointerleave", endStroke);
+
+// --- 버튼 ---
+clearBtn.addEventListener("click", clearDrawing);
+
+passBtn.addEventListener("click", () => {
+  stopTimer();
+  feedbackEl.textContent = "통과";
+  feedbackEl.className = "feedback";
+  nextQuestion();
+});
+
+checkBtn.addEventListener("click", () => {
+  const score = computeMatchScore();
+  if (score >= MATCH_THRESHOLD) {
+    correctCount++;
+    stopTimer();
+    feedbackEl.textContent = `정답! (일치도 ${Math.round(score * 100)}%)`;
+    feedbackEl.className = "feedback ok";
+    setTimeout(nextQuestion, 600);
+  } else {
+    feedbackEl.textContent = `다시 시도 (일치도 ${Math.round(score * 100)}%)`;
+    feedbackEl.className = "feedback no";
+  }
+});
+
+restartBtn.addEventListener("click", startQuiz);
+
+startQuiz();
+</script>
+</body>
+</html>
