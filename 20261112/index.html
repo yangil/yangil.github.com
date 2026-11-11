@@ -1,0 +1,617 @@
+<!doctype html>
+<!--
+  ─────────────────────────────────────────────
+  우리의 10년 — 결혼 10주년 기념 페이지
+  ─────────────────────────────────────────────
+  수정 방법: 아래 <script> 맨 위의 CONFIG만 고치면 됩니다.
+  사진은 img/ 폴더의 휴대폰용 사본(영문 파일명)을 사용합니다. 원본은 photos/ 폴더.
+  미리보기: 주소 끝에 #3 처럼 번호를 붙이면 그 장면부터 시작합니다.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#140f19">
+<title>우리의 10년</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#140f19; --bg2:#2a1b2e;
+  --cream:#f7efe6; --gold:#e9c79f; --rose:#f1b3b8;
+  --muted:rgba(247,239,230,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--cream);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+body{font-family:'Gowun Batang',serif}
+.hand{font-family:'Nanum Pen Script',cursive}
+
+#stage{position:fixed;inset:0;max-width:480px;margin:0 auto;overflow:hidden;touch-action:manipulation;
+  background:radial-gradient(120% 80% at 50% 0%,#3a2338 0%,var(--bg2) 38%,var(--bg) 78%)}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.vignette{position:absolute;inset:0;pointer-events:none;z-index:6;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55))}
+.grain{position:absolute;inset:0;pointer-events:none;z-index:7;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+
+/* ── 진행 바 ── */
+#bars{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;display:flex;gap:3px;
+  z-index:10;opacity:0;transition:opacity .8s}
+#bars.on{opacity:1}
+.bar{flex:1;height:2px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:rgba(247,239,230,.85)}
+#mute{position:absolute;top:calc(24px + env(safe-area-inset-top));right:12px;z-index:11;display:none;
+  width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.25);color:var(--cream);font-size:15px}
+
+/* ── 장면 공통 ── */
+.scene{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:56px 22px calc(36px + env(safe-area-inset-bottom));text-align:center;
+  opacity:0;visibility:hidden;transition:opacity 1s ease,visibility 0s 1s}
+.scene.active{opacity:1;visibility:visible;transition:opacity 1s ease}
+.scene > *{position:relative;z-index:1}
+.scene > .bgblur,.scene > .glow{position:absolute;z-index:0}
+.reveal{opacity:0}
+.scene.active .reveal{animation:rise 1.6s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:var(--d,0s)}
+@keyframes rise{from{opacity:0;transform:translateY(18px);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
+body.paused *{animation-play-state:paused!important}
+
+.eyebrow{font-size:14px;letter-spacing:.34em;color:var(--gold)}
+.lead{font-size:25px;line-height:1.6}
+.soft{font-size:17px;color:var(--muted);line-height:1.7}
+.gold{color:var(--gold)}
+.mt{margin-top:20px}
+
+/* ── 인트로(봉투) ── */
+.envelope{width:250px;height:165px;position:relative;margin:34px 0 40px;perspective:800px}
+.env-body{position:absolute;inset:0;border-radius:6px;background:linear-gradient(160deg,#f6e7d6,#e3c9ae);
+  box-shadow:0 22px 50px rgba(0,0,0,.5)}
+.env-body::after{content:'';position:absolute;inset:0;border-radius:6px;
+  background:linear-gradient(to top right,transparent 49.5%,rgba(150,110,80,.18) 50%,transparent 50.5%),
+             linear-gradient(to top left,transparent 49.5%,rgba(150,110,80,.18) 50%,transparent 50.5%)}
+.env-flap{position:absolute;left:0;right:0;top:0;height:100%;clip-path:polygon(0 0,100% 0,50% 58%);
+  background:linear-gradient(180deg,#efdcc6,#d8bb9c);transform-origin:top;transition:transform 1s ease}
+.seal{position:absolute;left:50%;top:58%;width:48px;height:48px;margin:-24px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#dc5a66,#861c2a);display:grid;place-items:center;
+  color:#ffdcdc;font-size:20px;box-shadow:0 3px 10px rgba(0,0,0,.35);transition:transform .7s,opacity .7s}
+.opened .seal{transform:scale(1.5);opacity:0}
+.opened .env-flap{transform:rotateX(180deg)}
+.to{font-size:40px;color:var(--cream)}
+.tap-hint{font-size:15px;color:var(--muted);letter-spacing:.08em;animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+/* ── 날짜 ── */
+.date-big{font-size:40px;letter-spacing:.06em;margin-top:12px}
+.divider{width:1px;height:0;margin:24px auto;background:linear-gradient(var(--gold),transparent)}
+.scene.active .divider{animation:grow 1.4s ease forwards;animation-delay:var(--d,0s)}
+@keyframes grow{to{height:60px}}
+
+/* ── 폴라로이드 — 사진은 원래 비율 그대로, 상자(--fw × --fh) 안에 맞춤 ── */
+.bgblur{inset:-40px;background-size:cover;background-position:center;filter:blur(32px) brightness(.45);opacity:.7}
+.polaroid{background:#fbf7f1;padding:10px 10px 34px;box-shadow:0 20px 44px rgba(0,0,0,.55);opacity:0;transform:rotate(var(--r))}
+.scene.active .polaroid{animation:drop 1.4s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--pd,.1s)}
+@keyframes drop{from{opacity:0;transform:translateY(-40px) rotate(calc(var(--r) - 10deg)) scale(.92)}
+  to{opacity:1;transform:rotate(var(--r))}}
+.frame{position:relative;overflow:hidden;background:var(--g);line-height:0}
+.frame img{display:block;width:auto;height:auto;max-width:var(--fw);max-height:var(--fh)}
+.scene.active .frame img{animation:kb 6s ease-out forwards;animation-delay:var(--pd,0s)}
+@keyframes kb{from{transform:scale(1.12)}to{transform:scale(1)}}
+.ph-label{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;color:rgba(255,255,255,.92);font-size:15px;line-height:1.3;padding:6px}
+.ph-label small{font-size:12px;opacity:.8;font-family:monospace;word-break:break-all}
+.frame.ph{width:var(--fw);height:var(--fh)}
+.frame.ph img{display:none}
+.frame.ph .ph-label{display:flex}
+
+/* 사진 1장 */
+.single{--fw:min(76vw,330px);--fh:min(50dvh,430px)}
+.single .polaroid{margin-top:22px}
+
+/* 여러 장 — 격자 */
+.collage{--fw:min(39vw,180px);--fh:min(25dvh,230px);margin-top:22px;
+  display:grid;grid-template-columns:repeat(2,calc(var(--fw) + 12px));gap:14px 14px;justify-content:center;
+  align-items:center;justify-items:center}
+.collage .polaroid{padding:6px 6px 20px;box-shadow:0 14px 30px rgba(0,0,0,.5)}
+.collage.n3 .polaroid:nth-child(3){grid-column:1/-1}
+/* 여러 장 — 흩뿌린 앨범 */
+.collage.scatter{display:block;position:relative;width:calc(var(--fw) * 2 + 40px);height:calc(var(--fh) * 2 + 74px)}
+.collage.scatter .polaroid{position:absolute}
+.collage.scatter .polaroid:nth-child(-n+2){z-index:2}
+.collage.scatter .polaroid:nth-child(1){left:0;top:0}
+.collage.scatter .polaroid:nth-child(2){right:0;top:12px}
+.collage.scatter .polaroid:nth-child(3){left:6%;bottom:6px}
+.collage.scatter .polaroid:nth-child(4){right:4%;bottom:0}
+.collage.scatter.n3 .polaroid:nth-child(3){left:auto;right:auto;bottom:0;transform-origin:center}
+
+/* ── 아이가 태어난 날 ── */
+.glow{left:50%;top:52%;width:120vw;max-width:560px;aspect-ratio:1;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(255,226,190,.28) 0%,rgba(241,179,184,.12) 35%,transparent 65%);opacity:0}
+.scene.active .glow{animation:bloom 3s ease forwards}
+@keyframes bloom{from{opacity:0;transform:translate(-50%,-50%) scale(.6)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.pair{--fw:min(40vw,180px);--fh:min(32dvh,270px);display:flex;align-items:center;justify-content:center;margin:22px 0 10px}
+.pair .polaroid{padding:7px 7px 24px}
+.pair .polaroid + .polaroid{margin-left:-14px}
+.birth .lead{font-size:24px}
+
+/* ── 함께한 날 ── */
+.days{font-size:84px;font-weight:700;color:var(--gold);line-height:1;margin-top:16px;
+  font-variant-numeric:tabular-nums;text-shadow:0 0 32px rgba(233,199,159,.35)}
+.unit{font-size:21px;color:var(--gold);margin-top:6px}
+
+/* ── 편지 ── */
+.letter{width:100%;max-width:370px;padding:24px 20px 18px;border-radius:4px;text-align:left;color:#4a3a36;
+  background:linear-gradient(#fbf4ea,#efe1cd);box-shadow:0 24px 60px rgba(0,0,0,.55)}
+.scene.active .letter.reveal{animation-name:paper}
+@keyframes paper{from{opacity:0;transform:translateY(30px) rotate(2deg)}to{opacity:1;transform:rotate(-1deg)}}
+.typed{font-family:'Nanum Pen Script',cursive;font-size:min(25px,3.2dvh);line-height:1.4;white-space:pre-wrap;word-break:keep-all}
+.ghost{color:transparent}
+.caret{display:inline-block;width:2px;height:.95em;background:#b5707a;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.sign{text-align:right;font-family:'Nanum Pen Script',cursive;font-size:28px;color:#9b5a64;margin-top:6px;
+  opacity:0;transition:opacity 1.2s}
+.letter.done .sign{opacity:1}
+.letter.done .caret{display:none}
+
+/* ── 마무리 ── */
+.love{font-size:112px;color:var(--rose);line-height:1;margin:24px 0 16px;text-shadow:0 0 26px rgba(241,179,184,.55)}
+.scene.active .love.reveal{animation:rise 1.8s cubic-bezier(.2,.7,.2,1) forwards,beat 2.6s ease-in-out infinite;
+  animation-delay:var(--d),calc(var(--d) + 1.8s)}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.08)}30%{transform:scale(1)}45%{transform:scale(1.05)}}
+
+/* ── 마지막 선물 ── */
+.clue{--fw:min(62vw,260px);--fh:min(31dvh,300px)}
+.clue .polaroid{margin:18px 0 6px}
+.mark{position:absolute;left:var(--x);top:var(--y);width:54px;height:54px;margin:-27px;border-radius:50%;
+  border:2px solid #fff;opacity:0;pointer-events:none}
+.scene.active .mark{animation:markin .6s ease forwards 2.6s,ping 1.8s ease-out 3.2s infinite}
+@keyframes markin{from{opacity:0;transform:scale(2.2)}to{opacity:1;transform:scale(1)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(241,179,184,.9),0 0 14px rgba(255,255,255,.6)}
+  100%{box-shadow:0 0 0 22px rgba(241,179,184,0),0 0 14px rgba(255,255,255,.6)}}
+.hint{margin-top:10px;font-size:26px;color:var(--rose)}
+.replay{margin-top:22px;background:transparent;border:1px solid rgba(233,199,159,.4);color:var(--gold);
+  font-family:inherit;font-size:15px;padding:10px 22px;border-radius:999px;letter-spacing:.05em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="scenes"></div>
+  <canvas id="fx"></canvas>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+  <div id="bars"></div>
+  <button id="mute" aria-label="소리">♪</button>
+</div>
+
+<script>
+/* ============================== CONFIG ============================== */
+const CONFIG = {
+  weddingDate: '2016-11-12',
+  years: 10,
+  music: 'music.mp3',              // 쇼팽 녹턴 Op.9 No.2 — Frank Levy 연주, Musopen, CC0 퍼블릭 도메인
+  to: 'To. 미역이에게',
+  from: '— 당신의 남편이',
+
+  opening: ['10년 전 오늘,', '우리는 서로의\n평생이 되기로 약속했어요.'],
+  openingSub: '그날부터 지금까지의 이야기',
+
+  // 아이가 태어난 날 (story의 type:'child' 장면)
+  child: {
+    born: '2019-09-19',
+    photos: ['img/birth1.jpg', 'img/birth2.jpg'],
+    lines: ['그리고 우리에게', '가장 큰 선물, 다온이가 찾아왔어요'],
+    sub: '둘이던 우리가, 셋이 되던 날',
+  },
+
+  // 이야기 순서 — 위에서부터 차례로 나옵니다. 순서를 바꾸거나 빼도 됩니다.
+  //  type 'album' : 사진 3~4장 (layout: 'grid' 격자 / 'scatter' 흩뿌린 앨범)
+  //  type 'child' : 아이가 태어난 날 (위 child 설정)
+  //  type 'photo' : 사진 1장
+  story: [
+    { type: 'album', layout: 'grid',    title: '2016. 11. 12', lead: '우리가\n부부가 되던 날',
+      items: ['img/wedding1.jpg', 'img/wedding2.jpg', 'img/wedding3.jpg', 'img/wedding4.jpg'] },
+    { type: 'album', layout: 'scatter', title: '신혼여행', lead: '꿈만 같았던 신혼여행',
+      items: ['img/honeymoon1.jpg', 'img/honeymoon2.jpg', 'img/honeymoon3.jpg', 'img/honeymoon4.jpg'] },
+    { type: 'album', layout: 'grid',    title: '우리 둘의 시간', lead: '당신과 함께라서\n매일이 여행 같았어요',
+      items: ['img/memory1.jpg', 'img/memory2.jpg', 'img/memory3.jpg', 'img/memory4.jpg'] },
+    { type: 'album', layout: 'scatter', title: '우리 둘의 시간', lead: '평범한 하루도\n당신이라 특별했어요',
+      items: ['img/memory5.jpg', 'img/memory6.jpg', 'img/memory7.jpg', 'img/memory8.jpg'] },
+    { type: 'child' },
+    { type: 'album', layout: 'grid',    title: '다온이와 함께', lead: '작은 손을 잡고\n함께 자라온 시간',
+      items: ['img/daon1.jpg', 'img/daon2.jpg', 'img/daon3.jpg', 'img/daon4.jpg'] },
+    { type: 'album', layout: 'scatter', title: '다온이와 함께', lead: '웃음이\n두 배가 되던 날들',
+      items: ['img/daon5.jpg', 'img/daon6.jpg', 'img/daon7.jpg', 'img/daon8.jpg'] },
+    { type: 'album', layout: 'grid',    title: '다온이와 함께', lead: '어디를 가도\n셋이라 행복했어요',
+      items: ['img/daon9.jpg', 'img/daon10.jpg', 'img/daon11.jpg', 'img/daon12.jpg'] },
+    { type: 'album', layout: 'scatter', title: '다온이와 함께', lead: '그렇게 우리는\n가족이 되었어요',
+      items: ['img/daon13.jpg', 'img/daon14.jpg', 'img/daon15.jpg', 'img/daon16.jpg'] },
+    { type: 'photo', src: 'img/now.jpg', title: '그리고 지금', lead: '10년이 지나도\n여전히 설레는 우리' },
+  ],
+
+  daysLines: ['계절이 마흔 번 바뀌는 동안', '당신은 늘 내 곁에 있었어요'],
+  daysChildLine: '그리고 다온이와 함께한 {n}일',   // {n}은 자동 계산
+
+  showLetter: true,                // 편지 장면 표시 여부
+  letter: [
+    '여보, 안녕?',
+    '이걸 보고 있다는 건 그래도 제주도 여행을 잘 다녀오고 즐거운 결혼기념일을 맞이했다는 거겠지?',
+    '',
+    '우리 여보는 결혼 전 그리고 결혼 후 10년 동안 나를 제일 잘 알고, 많은 변화를 주었고, 새로운 세상을 열어준 사람이야.',
+    '2010년 8월 1일에 여보와 만남을 시작했던 건 내 인생의 가장 큰 행운이었고',
+    '여보와 결혼을 한 건 내 인생에서 다시없을 최고의 선택이라고 생각해.',
+    '',
+    '항상 고마웠고 지금도 고맙고 앞으로도 매번 고마울 우리 문희, 미역이, 여보.',
+    '나도 여보에게 고마운 사람이 될 수 있도록 더욱 노력해볼게.',
+    '앞으로도 행복하게 잘 살아보자.',
+  ],
+
+  ending: ['앞으로의 10년도', '그 다음의 10년도', '지금처럼 우리 셋이 함께\n행복하게 살자'],
+  love: '',                         // 큰 손글씨 문구 (비우면 표시 안 함)
+
+  // 숨겨둔 선물 위치 — 숨긴 곳 사진 + 그 사진 안에서 표시할 위치(가로 x%, 세로 y%)
+  showHidden: false,               // 마지막 선물 장면 표시 여부 (true로 바꾸면 다시 나옴)
+  hidden: {
+    src: 'img/hidden.jpg',
+    mark: { x: 62, y: 55 },        // 표시 원 위치. 없애려면 mark: null
+    title: '마지막 선물',
+    lead: '아직 끝이 아니에요',
+    lines: ['이 사진 속 그곳에\n당신을 위해 숨겨둔 게 있어요', '지금, 찾으러 가볼래요?'],
+    hint: '',                       // 예: '힌트: 매일 아침 당신 손이 가장 먼저 닿는 곳'
+  },
+
+  // 장면 길이(ms)
+  dur: { opening: 5500, date: 5500, photo: 5500, album: 6500, child: 7500, days: 7000, letter: 30000, ending: 8500 },
+};
+/* ==================================================================== */
+
+const C = CONFIG;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const txt = s => esc(s).replace(/\n/g, '<br>');
+const pad = n => String(n).padStart(2, '0');
+const fmt = d => `${d.getFullYear()}. ${pad(d.getMonth() + 1)}. ${pad(d.getDate())}`;
+const rv = (html, d, cls = '', tag = 'p') => `<${tag} class="reveal ${cls}" style="--d:${d}s">${html}</${tag}>`;
+
+const wed = new Date(C.weddingDate + 'T00:00:00');
+const anniv = new Date(wed); anniv.setFullYear(wed.getFullYear() + C.years);
+const DAYS = Math.round((anniv - wed) / 864e5);
+const born = new Date(C.child.born + 'T00:00:00');
+const CHILD_DAYS = Math.round((anniv - born) / 864e5);
+
+const GRADS = [
+  'linear-gradient(135deg,#f6d1c1,#c98b9b)', 'linear-gradient(135deg,#f3e2c7,#b89a7a)',
+  'linear-gradient(135deg,#c9d6e8,#8d8fb8)', 'linear-gradient(135deg,#e8c9d6,#9b7a9a)',
+  'linear-gradient(135deg,#f1d8a8,#c98a6b)', 'linear-gradient(135deg,#fde9d6,#f2b9a6)'];
+let gi = 0;
+const nextGrad = () => GRADS[gi++ % GRADS.length];
+
+const host = $('#scenes');
+const scenes = [];
+function add(html, opt = {}) {
+  const el = document.createElement('section');
+  el.className = 'scene ' + (opt.cls || '');
+  el.innerHTML = html;
+  host.appendChild(el);
+  const s = { el, dur: 0, ...opt };
+  scenes.push(s);
+  return s;
+}
+
+/* 폴라로이드 한 장 (설명 글 없이 사진만) */
+function polaroid(src, { r = '-2deg', pd = .1, g = nextGrad(), extra = '' } = {}) {
+  return `
+    <div class="polaroid" style="--r:${r};--pd:${pd}s">
+      <div class="frame" style="--g:${g}">
+        <img src="${esc(src)}" alt="" decoding="async" onerror="this.parentNode.classList.add('ph')">
+        <div class="ph-label">사진 없음<small>${esc(src)}</small></div>
+        ${extra}
+      </div>
+    </div>`;
+}
+const blur = src => `<div class="bgblur" style="background-image:url('${esc(src)}'),${GRADS[gi % GRADS.length]}"></div>`;
+const head = (title, lead) => `${rv(esc(title), .2, 'eyebrow')}${rv(txt(lead), .6, 'lead')}`;
+
+function photoScene(p, r) {
+  add(`
+    ${blur(p.src)}
+    ${head(p.title, p.lead)}
+    ${polaroid(p.src, { r, pd: 1.0 })}`, { cls: 'single', dur: C.dur.photo });
+}
+
+function albumScene(a) {
+  const scatter = a.layout === 'scatter';
+  const rots = scatter ? ['-7deg', '6deg', '5deg', '-6deg'] : ['-4deg', '3deg', '2.5deg', '-3deg'];
+  const items = a.items.slice(0, 4);
+  add(`
+    ${blur(items[0])}
+    ${head(a.title, a.lead)}
+    <div class="collage ${scatter ? 'scatter' : ''} n${items.length}">
+      ${items.map((src, i) => polaroid(src, { r: rots[i], pd: 1.1 + i * .55 })).join('')}
+    </div>`, { dur: C.dur.album });
+}
+
+function childScene() {
+  const k = C.child;
+  add(`
+    <div class="glow"></div>
+    ${rv(fmt(born), .2, 'eyebrow')}
+    ${rv(txt(k.lines[0]), .7, 'lead')}
+    ${rv(txt(k.lines[1]), 1.3, 'lead gold')}
+    <div class="pair">
+      ${k.photos.map((src, i) => polaroid(src, { r: i ? '4deg' : '-4deg', pd: 2.0 + i * .6,
+          g: 'linear-gradient(135deg,#fde9d6,#f2b9a6)' })).join('')}
+    </div>
+    ${rv(txt(k.sub), 3.8, 'soft')}`, {
+      cls: 'birth', dur: C.dur.child,
+      enter() { setTimeout(() => scenes[cur] === this && fx.hearts(14), 2400); },
+    });
+}
+
+/* 0. 인트로 — 봉투 */
+const intro = add(`
+  <p class="eyebrow">열 번째 가을에 도착한 편지</p>
+  <div class="envelope"><div class="env-body"></div><div class="env-flap"></div><div class="seal">♥</div></div>
+  <p class="to hand">${esc(C.to)}</p>
+  <p class="tap-hint mt">화면을 눌러 열어주세요</p>`, { intro: true }).el;
+
+/* 1. 오프닝 */
+add(`
+  ${rv(txt(C.opening[0]), .3, 'lead')}
+  ${rv(txt(C.opening[1]), 1.4, 'lead gold')}
+  ${rv(esc(C.openingSub), 3.2, 'soft mt')}`, { dur: C.dur.opening });
+
+/* 2. 날짜 */
+add(`
+  ${rv('우리의 시작', .2, 'eyebrow')}
+  ${rv(fmt(wed), .6, 'date-big')}
+  <div class="divider" style="--d:1.9s"></div>
+  ${rv('그리고 열 번째 가을', 2.8, 'eyebrow')}
+  ${rv(fmt(anniv), 3.3, 'date-big gold')}`, { dur: C.dur.date });
+
+/* 3~. 이야기 (CONFIG.story 순서대로) */
+C.story.forEach((ch, i) => {
+  if (ch.type === 'album') albumScene(ch);
+  else if (ch.type === 'child') childScene();
+  else if (ch.type === 'photo') photoScene(ch, i % 2 ? '2deg' : '-2deg');
+});
+
+/* 함께한 시간 */
+{
+  const s = add(`
+    ${rv('함께한 시간', .2, 'eyebrow')}
+    ${rv('0', .5, 'days')}
+    ${rv('일', .5, 'unit')}
+    ${rv(txt(C.daysLines[0]), 3.0, 'soft mt')}
+    ${rv(txt(C.daysLines[1]), 4.0, 'lead')}
+    ${rv(esc(C.daysChildLine.replace('{n}', CHILD_DAYS.toLocaleString('ko-KR'))), 5.2, 'soft mt')}`, {
+      dur: C.dur.days,
+      enter() { this.num.textContent = '0'; },
+      tick(t) {
+        const p = Math.min(1, Math.max(0, (t - 600) / 2600));
+        this.num.textContent = Math.round((1 - Math.pow(1 - p, 3)) * DAYS).toLocaleString('ko-KR');
+      },
+    });
+  s.num = s.el.querySelector('.days');
+}
+
+/* 편지 */
+if (C.showLetter) {
+  const text = C.letter.join('\n');
+  const s = add(`
+    <div class="letter reveal" style="--d:.2s">
+      <div class="typed"></div>
+      <p class="sign">${esc(C.from)}</p>
+    </div>`, {
+      dur: C.dur.letter, last: -1,
+      enter() { this.last = -1; this.box.classList.remove('done'); this.render(0); },
+      render(n) {
+        this.typed.innerHTML = esc(text.slice(0, n)) + '<span class="caret"></span>' +
+          '<span class="ghost">' + esc(text.slice(n)) + '</span>';
+      },
+      tick(t, dur) {
+        const p = Math.min(1, Math.max(0, (t - 1400) / (dur * 0.8 - 1400)));
+        const n = Math.floor(p * text.length);
+        if (n !== this.last) { this.last = n; this.render(n); }
+        if (p >= 1) this.box.classList.add('done');
+      },
+    });
+  s.box = s.el.querySelector('.letter');
+  s.typed = s.el.querySelector('.typed');
+}
+
+/* 마무리 */
+add(`
+  ${rv(txt(C.ending[0]), .3, 'lead')}
+  ${rv(txt(C.ending[1]), 1.5, 'lead')}
+  ${rv(txt(C.ending[2]), 2.7, 'lead gold')}
+  ${C.love ? rv(esc(C.love), 4.2, 'love hand', 'h1') : ''}
+  ${rv(`${fmt(anniv)} · 우리의 열 번째 결혼기념일`, C.love ? 5.8 : 4.4, C.love ? 'soft' : 'soft mt')}
+  ${C.showHidden ? '' : `<button class="replay reveal" style="--d:${C.love ? 7.5 : 6}s">처음부터 다시 보기</button>`}`, {
+    dur: C.dur.ending, final: !C.showHidden,
+    enter() { fx.mode = 'petals'; },
+  });
+
+/* 마지막 선물 */
+if (C.showHidden) {
+  const h = C.hidden;
+  const mark = h.mark ? `<div class="mark" style="--x:${h.mark.x}%;--y:${h.mark.y}%"></div>` : '';
+  add(`
+    ${head(h.title, h.lead)}
+    ${polaroid(h.src, { r: '-1.5deg', pd: 1.4, g: 'linear-gradient(135deg,#d9cbe8,#9d8bb3)', extra: mark })}
+    ${rv(txt(h.lines[0]), 3.4, 'lead gold')}
+    ${rv(txt(h.lines[1]), 4.8, 'soft')}
+    ${h.hint ? rv(esc(h.hint), 6.0, 'hint hand') : ''}
+    <button class="replay reveal" style="--d:8s">처음부터 다시 보기</button>`, {
+      cls: 'clue', dur: 9000, final: true,
+      enter() { fx.mode = 'petals'; },
+    });
+}
+
+/* ── 진행 바 ── */
+const bars = $('#bars');
+const fills = scenes.slice(1).map(() => {
+  const b = document.createElement('div'); b.className = 'bar'; b.innerHTML = '<i></i>';
+  bars.appendChild(b); return b.firstChild;
+});
+function paintBars() {
+  const s = scenes[cur];
+  fills.forEach((f, j) => {
+    const k = j + 1;
+    f.style.width = k < cur ? '100%' : k > cur ? '0%' : Math.min(100, elapsed / s.dur * 100) + '%';
+  });
+}
+
+/* ── 장면 엔진 ── */
+let cur = 0, elapsed = 0, started = false, paused = false;
+function go(i) {
+  i = Math.max(1, Math.min(scenes.length - 1, i));
+  scenes.forEach(s => s.el.classList.remove('active'));
+  const s = scenes[i];
+  void s.el.offsetWidth;            // 애니메이션 재시작
+  s.el.classList.add('active');
+  cur = i; elapsed = 0;
+  fx.mode = 'dust';
+  s.enter && s.enter();
+  paintBars();
+}
+function start() {
+  if (started) return;
+  intro.classList.add('opened');
+  startMusic();
+  setTimeout(() => { started = true; bars.classList.add('on'); go(1); }, 1300);
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(100, now - last); last = now;
+  if (started && !paused) {
+    elapsed += dt;
+    const s = scenes[cur];
+    s.tick && s.tick(elapsed, s.dur);
+    paintBars();
+    if (!s.final && elapsed >= s.dur) go(cur + 1);
+  }
+  fx.draw(dt);
+  requestAnimationFrame(loop);
+}
+
+/* ── 입력: 탭(넘기기/뒤로), 꾹 누르기(일시정지) ── */
+const stage = $('#stage');
+let holdTimer = null, held = false;
+stage.addEventListener('pointerdown', e => {
+  if (e.target.closest('#mute')) return;
+  held = false;
+  if (started) holdTimer = setTimeout(() => { held = true; paused = true; document.body.classList.add('paused'); }, 250);
+});
+stage.addEventListener('pointerup', e => {
+  clearTimeout(holdTimer);
+  if (e.target.closest('#mute')) return;
+  if (held) { held = false; paused = false; document.body.classList.remove('paused'); return; }
+  if (!started) return start();
+  if (e.target.closest('.replay')) return go(1);
+  const x = e.clientX - stage.getBoundingClientRect().left;
+  if (x < stage.clientWidth * 0.3) return go(cur - 1);
+  if (!scenes[cur].final) go(cur + 1);
+});
+stage.addEventListener('pointercancel', () => {
+  clearTimeout(holdTimer); held = false; paused = false; document.body.classList.remove('paused');
+});
+stage.addEventListener('contextmenu', e => e.preventDefault());
+
+/* ── 음악 ── */
+let audio = null, muted = false;
+const muteBtn = $('#mute');
+function startMusic() {
+  if (!C.music) return;
+  audio = new Audio(C.music); audio.loop = true; audio.volume = 0;
+  audio.play().then(() => {
+    muteBtn.style.display = 'block';
+    const t = setInterval(() => { audio.volume = Math.min(.8, audio.volume + .04); if (audio.volume >= .8) clearInterval(t); }, 120);
+  }).catch(() => {});
+}
+muteBtn.addEventListener('pointerup', () => {
+  if (!audio) return;
+  muted = !muted; audio.muted = muted; muteBtn.textContent = muted ? '×' : '♪';
+});
+document.addEventListener('visibilitychange', () => {
+  if (!audio) return;
+  if (document.hidden) audio.pause(); else if (started) audio.play().catch(() => {});
+});
+
+/* ── 배경 효과: 금빛 먼지 / 꽃잎 / 하트 ── */
+const fx = (() => {
+  const cv = $('#fx'), ctx = cv.getContext('2d');
+  let W = 0, H = 0;
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize(); addEventListener('resize', resize);
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const mkDust = init => ({ x: rnd(0, W), y: init ? rnd(0, H) : H + 10, r: rnd(.4, 1.8),
+    vy: -rnd(.05, .2), vx: rnd(-.04, .04), a: rnd(.2, .7), tw: rnd(0, 6.28) });
+  const dust = Array.from({ length: 45 }, () => mkDust(true));
+  const petals = [], hearts = [];
+  function heart(s) {
+    ctx.beginPath(); ctx.moveTo(0, s * .3);
+    ctx.bezierCurveTo(-s, -s * .4, -s * .5, -s * 1.1, 0, -s * .5);
+    ctx.bezierCurveTo(s * .5, -s * 1.1, s, -s * .4, 0, s * .3);
+    ctx.fill();
+  }
+  const api = {
+    mode: 'dust',
+    hearts(n) {
+      for (let i = 0; i < n; i++) hearts.push({ x: W / 2 + rnd(-90, 90), y: H * .55 + rnd(-40, 60),
+        s: rnd(6, 13), vy: -rnd(.5, 1.2), vx: rnd(-.35, .35), life: 1, fade: rnd(.004, .008),
+        c: Math.random() < .7 ? '#f4b9c0' : '#f3d6ad' });
+    },
+    draw(dt) {
+      const k = dt / 16.7;
+      ctx.clearRect(0, 0, W, H);
+      for (const d of dust) {
+        d.x += d.vx * k; d.y += d.vy * k; d.tw += .03 * k;
+        if (d.y < -10) Object.assign(d, mkDust(false));
+        const a = d.a * (.6 + .4 * Math.sin(d.tw));
+        ctx.globalAlpha = a * .25; ctx.fillStyle = '#f3d6ad';
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.r * 4, 0, 6.28); ctx.fill();
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 6.28); ctx.fill();
+      }
+      if (api.mode === 'petals' && petals.length < 38 && Math.random() < .12 * k) {
+        petals.push({ x: rnd(-20, W + 20), y: -20, s: rnd(6, 12), vy: rnd(.6, 1.3), vx: rnd(-.3, .3),
+          rot: rnd(0, 6.28), vr: rnd(-.03, .03), sw: rnd(0, 6.28),
+          c: Math.random() < .75 ? '#f4b9c0' : '#f3d6ad' });
+      }
+      for (let i = petals.length - 1; i >= 0; i--) {
+        const p = petals[i];
+        p.sw += .02 * k; p.y += p.vy * k; p.x += (p.vx + Math.sin(p.sw) * .6) * k; p.rot += p.vr * k;
+        if (p.y > H + 30 || (api.mode !== 'petals' && Math.random() < .05)) { petals.splice(i, 1); continue; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = .85; ctx.fillStyle = p.c;
+        ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * .55, 0, 0, 6.28); ctx.fill();
+        ctx.restore();
+      }
+      for (let i = hearts.length - 1; i >= 0; i--) {
+        const h = hearts[i];
+        h.x += h.vx * k; h.y += h.vy * k; h.life -= h.fade * k;
+        if (h.life <= 0) { hearts.splice(i, 1); continue; }
+        ctx.save(); ctx.translate(h.x, h.y);
+        ctx.globalAlpha = Math.min(1, h.life * 1.5) * .9; ctx.fillStyle = h.c;
+        heart(h.s); ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    },
+  };
+  return api;
+})();
+
+intro.classList.add('active');
+requestAnimationFrame(loop);
+
+// 미리보기용: 주소 끝에 #3 처럼 붙이면 해당 장면부터 바로 시작
+const jump = parseInt(location.hash.slice(1), 10);
+if (jump > 0) { started = true; intro.classList.remove('active'); bars.classList.add('on'); go(jump); }
+</script>
+</body>
+</html>
