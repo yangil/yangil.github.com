@@ -109,20 +109,26 @@ body.paused *{animation-play-state:paused!important}
 .single .polaroid{margin-top:22px}
 
 /* 여러 장 — 격자 */
-.collage{--fw:min(39vw,180px);--fh:min(25dvh,230px);margin-top:22px;
-  display:grid;grid-template-columns:repeat(2,calc(var(--fw) + 12px));gap:14px 14px;justify-content:center;
+.collage{--fw:min(43vw,210px);--fh:min(31dvh,290px);margin-top:14px;
+  display:grid;grid-template-columns:repeat(2,calc(var(--fw) + 10px));gap:10px 8px;justify-content:center;
   align-items:center;justify-items:center}
-.collage .polaroid{padding:6px 6px 20px;box-shadow:0 14px 30px rgba(0,0,0,.5)}
+.collage .polaroid{padding:5px 5px 16px;box-shadow:0 14px 30px rgba(0,0,0,.5)}
 .collage.n3 .polaroid:nth-child(3){grid-column:1/-1}
-/* 여러 장 — 흩뿌린 앨범 */
-.collage.scatter{display:block;position:relative;width:calc(var(--fw) * 2 + 40px);height:calc(var(--fh) * 2 + 74px)}
-.collage.scatter .polaroid{position:absolute}
+/* 네 장이 화면 가운데로 모이게: 윗줄은 아래로, 아랫줄은 위로, 왼쪽 칸은 오른쪽으로, 오른쪽 칸은 왼쪽으로 붙임 */
+.collage .polaroid:nth-child(-n+2){align-self:end}
+.collage .polaroid:nth-child(n+3){align-self:start}
+.collage .polaroid:nth-child(odd){justify-self:end}
+.collage .polaroid:nth-child(even){justify-self:start}
+.collage.n3 .polaroid:nth-child(3){justify-self:center}
+/* 여러 장 — 흩뿌린 앨범: 격자와 같은 촘촘한 배치 + 큰 기울기·살짝 어긋난 위치 */
+.collage.scatter .polaroid{position:relative}
 .collage.scatter .polaroid:nth-child(-n+2){z-index:2}
-.collage.scatter .polaroid:nth-child(1){left:0;top:0}
-.collage.scatter .polaroid:nth-child(2){right:0;top:12px}
-.collage.scatter .polaroid:nth-child(3){left:6%;bottom:6px}
-.collage.scatter .polaroid:nth-child(4){right:4%;bottom:0}
-.collage.scatter.n3 .polaroid:nth-child(3){left:auto;right:auto;bottom:0;transform-origin:center}
+.collage.scatter .polaroid:nth-child(1){left:4px;top:4px}
+.collage.scatter .polaroid:nth-child(2){left:-4px;top:12px}
+.collage.scatter .polaroid:nth-child(3){left:8px;top:-4px}
+.collage.scatter .polaroid:nth-child(4){left:-6px;top:4px}
+/* 4컷 장면은 화면을 넓게 — 좌우 여백만 줄임 */
+.scene.album{padding-left:8px;padding-right:8px}
 
 /* ── 아이가 태어난 날 ── */
 .glow{left:50%;top:52%;width:120vw;max-width:560px;aspect-ratio:1;transform:translate(-50%,-50%);
@@ -327,7 +333,7 @@ function albumScene(a) {
     ${head(a.title, a.lead)}
     <div class="collage ${scatter ? 'scatter' : ''} n${items.length}">
       ${items.map((src, i) => polaroid(src, { r: rots[i], pd: 1.1 + i * .55 })).join('')}
-    </div>`, { dur: C.dur.album });
+    </div>`, { cls: 'album', dur: C.dur.album });
 }
 
 function childScene() {
